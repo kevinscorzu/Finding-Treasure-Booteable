@@ -6,19 +6,23 @@ bits 16                             ; Cantidad de bits a utilizar
 
 ; Seccion de Variables
 
-width   dw  140h                    ; Ancho de la pantalla 320 p
-height  dw  0c8h                    ; Alto de la pantalla 200 p
-gameWidht   dw  96h                 ; Ancho de la pantall de juego 100 p
-gameHeight  dw  96h                 ; Alto de la pantalla de juego 100 p
+width dw  140h                      ; Ancho de la pantalla 320 p
+height dw  0c8h                     ; Alto de la pantalla 200 p
+gameWidht  dw  8ch                  ; Ancho de la pantall de juego 100 p
+gameHeight dw  8ch                  ; Alto de la pantalla de juego 100 p
 
-time    db  00h                     ; Tiempo utilizado para el framerate del juego
+time db  00h                        ; Tiempo utilizado para el framerate del juego
 
-alienx  dw  05h                     ; Posicion x del alien 
-alieny  dw  05h                     ; Posicion y del alien
-alienv  dw  0ah                     ; Velocidad del alien
-alienc  dw  02h                     ; Color del alien
-aliens  dw  05h                     ; Altura y ancho del alien
-alienm  dw  00h                     ; Ultima direccion del alien (0 der, 1 aba, 2 izq, 3 arr)
+level dw 01h                        ; Nivel del juego
+
+alienx dw  05h                      ; Posicion x del alien 
+alieny dw  05h                      ; Posicion y del alien
+talienx dw 05h
+talieny dw 05h
+alienv dw  0ah                      ; Velocidad del alien
+alienc dw  02h                      ; Color del alien
+aliens dw  05h                      ; Altura y ancho del alien
+alienm dw  00h                      ; Ultima direccion del alien (0 der, 1 aba, 2 izq, 3 arr)
 
 bulletx dw  05h                     ; Posicion x de la bala
 bullety dw  05h                     ; Posicion y de la bala
@@ -27,7 +31,18 @@ bulletc dw  0ch                     ; Color de la bala
 bullets dw  03h                     ; Altura y ancho de la bala
 bulletb dw  00h                     ; Bala en pantalla (0 no, 1 si)
 bulletd dw  00h                     ; Direccion de la bala (0 der, 1 aba, 2 izq, 3 arr)
-bulletq dw  0ah                     ; Cantidad de balas del alien
+bulletq dw  00h                     ; Cantidad de balas del alien
+
+flowersc dw 0eh                     ; Color de las flores
+flowerss dw 05h                     ; Altura y ancho de las flores
+flowersi dw 00h                     ; Indice para contar flores
+flowerx dw 00h                      ; Posicion x de la flor actual
+flowery dw 00h                      ; Posicion y de la flor actual
+
+flowersx1 dw 0fh, 19h, 41h, 41h, 73h, 7dh, 87h         ; Posicion x de las flores nivel 1
+flowersy1 dw 37h, 73h, 19h, 87h, 7dh, 19h, 41h         ; Posicion y de las flores nivel 1
+flowersb1 dw 01h, 01h, 01h, 01h, 01h, 01h, 01h         ; Flores en pantalla (0 no, 1 si) nivel 1
+flowersa1 dw 0eh                    ; Cantidad de flores nivel 1
 
 ; Seccion de logica del juego
 
@@ -54,6 +69,8 @@ mainLoop:                           ; Funcion principal del programa
 
     call    drawAlien               ; Llama a la funcion para dibujar al alien
     call    drawBullet              ; Llama a la funcion para dibujar la bala
+    call    drawFlowers             ; Llama a la funcion para dibujar las flores
+    
     jmp     mainLoop                ; Salta al incio de la funcion
 
 ;  Seccion de dibujo en pantalla
@@ -136,6 +153,78 @@ drawBulletAux2:
     cmp     ax, [bullets]           ; Compara resultado de la resta con la altura
     jng     drawBulletAux           ; Si ax no es mayor que el ancho de la bala, salta a dibujar la siguiente fila
     ret                             ; Sino, Retornar
+
+drawFlowers:                        ; Funcion encargada de dibujar la flor
+    mov     ax, 01h                 ; Mueve 1 a ax
+    cmp     [level], ax             ; Compara el nivel actual con ax
+    je      drawFlowersLevel1       ; Salta a configurar el nivel 1
+    ;jmp     drawFlowerAux?          ; Salta a configurar el nivel 2
+
+drawFlowersAux:
+    mov     ah, 0ch                 ; Dibuja pixel
+    mov     al, [flowersc]          ; Color verde
+    mov     bh, 00h                 ; Pagina
+    int     10h                     ; Ejecutar interrupcion
+    inc     cx                      ; Suma uno a cx
+    mov     ax, cx                  ; Mueve cx a ax
+    sub     ax, [flowerx]           ; Resta el ancho de la flor a la columna actual
+    cmp     ax, [flowerss]          ; Compara resultado de la resta con el ancho
+    jng     drawFlowersAux          ; Si ax no es mayor que el ancho de la flor, salta a dibujar en la siguiente columna
+    jmp     drawFlowersAux2         ; Sino, salta a la funcion auxiliar 2
+
+drawFlowersAux2:                  
+    mov     cx, [flowerx]           ; Reinicia las columnas
+    inc     dx                      ; Suma uno a dx
+    mov     ax, dx                  ; Mueve dx a ax
+    sub     ax, [flowery]           ; Resta el alto de la flor a la fila actual
+    cmp     ax, [flowerss]          ; Compara resultado de la resta con la altura
+    jng     drawFlowersAux          ; Si ax no es mayor que el ancho de la flor, salta a dibujar la siguiente fila
+    jmp     drawFlowersAux3         ; Sino, salta a la funcion auxliar 3
+
+drawFlowersAux3:
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    add     cx, 02h                 ; Suma 2 a cx
+    mov     [flowersi], cx          ; Guarda el nuevo contador
+
+    jmp     drawFlowers             ; Salta a la funcion de dibujo principal
+
+drawFlowersLevel1:                  ; Funcion encargada de dibujar las flores del primer nivel
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    cmp     cx, [flowersa1]         ; Compara el contador con la cantidad de flores del primer nivel
+    je      exitFlowers             ; Si son iguales salta a la funcion de salida
+
+    mov     bx, flowersb1           ; Mueve el puntero del primer elemento de la lista que indica si una flor esta activa o no
+    add     bx, cx                  ; Suma el contador al puntero
+
+    mov     ax, [bx]                ; Obtiene la flor actual
+    cmp     ax, 00h                 ; Compara la flor con 0 para ver si tiene que ser dibujada
+    je      drawFlowersAux3         ; En caso de que no salta a la funcion auxiliar 3
+    jmp     drawFlowersLevel1Aux    ; Sino, salta a la funcion auxiliar 1
+
+drawFlowersLevel1Aux:
+    mov     ax, [flowersi]          ; Mueve el contador de las flores a ax
+
+    mov     bx, flowersx1           ; Mueve el puntero del primer elemento de la lista de las posiciones x de las flores
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion x de la flor actual
+    mov     [flowerx], ax           ; La almacena en la variable que contiene la posicion x de la flor actual
+    mov     cx, [flowerx]           ; Mueve la posicion inicial x a cx
+
+    mov     ax, [flowersi]          ; Mueve el contador de las flores a ax
+
+    mov     bx, flowersy1           ; Mueve el puntero del primer elemento de la lista de las posiciones y de las flores
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion y de la flor actual
+    mov     [flowery], ax           ; La almacena en la variable que contiene la posicion y de la flor actual
+    mov     dx, [flowery]           ; Mueve la posicion inicial y a dx
+
+    jmp     drawFlowersAux          ; Salta a la funcion auxliar
+
+exitFlowers:
+    mov     ax, 00h                 ; Mueve un 0 a ax
+    mov     [flowersi], ax          ; Lo almacena en el contador de las flores
+
+    ret                             ; Retornar
 
 ; Seccion de lectura del teclado
 
@@ -278,9 +367,17 @@ moveAlienUp:                        ; Funcion encargada de mover el alien hacia 
     je      exitRoutine             ; Si son iguales, salta a la funcion de salida
 
     call    deleteAlien             ; Llama a la funcion encargada de eliminar el alien
-    mov     ax, [alienv]            ; Mueve la velocidad del alien a ax
-    sub     [alieny], ax            ; Resta la velocidad a la posicion y
 
+    mov     ax, [alieny]            ; Mueve la posicion y del alien a ax
+    sub     ax, [alienv]            ; Resta la velocidad del alien a ax
+    mov     [talieny], ax           ; Almacena la nueva posicion en una variable temporal
+    call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
+
+    cmp     ax, 00h                 ; Verifica si ax es 0
+    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+
+    mov     [alieny], ax            ; Sino, almacena ax en la posicion y del alien
+    
     mov     ax, 03h                 ; Mueve 3 a ax
     mov     [alienm], ax            ; Almacena ax a la ultima direccion del alien
 
@@ -293,8 +390,16 @@ moveAlienDown:                      ; Funcion encargada de mover el alien hacia 
     je      exitRoutine             ; Si son iguales, salta a la funcion de salida
 
     call    deleteAlien             ; Llama a la funcion encargada de eliminar el alien
-    mov     ax, [alienv]            ; Mueve la velocidad del alien a ax
-    add     [alieny], ax            ; Suma la velocidad a la posicion y
+
+    mov     ax, [alieny]            ; Mueve la posicion y del alien a ax
+    add     ax, [alienv]            ; Suma la velocidad del alien a ax
+    mov     [talieny], ax           ; Almacena la nueva posicion en una variable temporal
+    call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
+
+    cmp     ax, 00h                 ; Verifica si ax es 0
+    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+
+    mov     [alieny], ax            ; Sino, almacena ax en la posicion y del alien
 
     mov     ax, 01h                 ; Mueve 1 a ax
     mov     [alienm], ax            ; Almacena ax a la ultima direccion del alien
@@ -308,8 +413,16 @@ moveAlienRight:                     ; Funcion encargada de mover el alien hacia 
     je      exitRoutine             ; Si son iguales, salta a la funcion de salida
 
     call    deleteAlien             ; Llama a la funcion encargada de eliminar el alien
-    mov     ax, [alienv]            ; Mueve la velocidad del alien a ax
-    add     [alienx], ax            ; Suma la velocidad a la posicion x
+
+    mov     ax, [alienx]            ; Mueve la posicion x del alien a ax
+    add     ax, [alienv]            ; Suma la velocidad del alien a ax
+    mov     [talienx], ax           ; Almacena la nueva posicion en una variable temporal
+    call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
+
+    cmp     ax, 00h                 ; Verifica si ax es 0
+    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+
+    mov     [alienx], ax            ; Sino, almacena ax en la posicion x del alien
 
     mov     ax, 00h                 ; Mueve 0 a ax
     mov     [alienm], ax            ; Almacena ax a la ultima direccion del alien
@@ -322,12 +435,88 @@ moveAlienLeft:                      ; Funcion encargada de mover el alien hacia 
     je      exitRoutine             ; Si son iguales, salta a la funcion de salida
 
     call    deleteAlien             ; Llama a la funcion encargada de eliminar el alien
-    mov     ax, [alienv]            ; Mueve la velocidad del alien a ax
-    sub     [alienx], ax            ; Resta la velocidad a la posicion x
+
+    mov     ax, [alienx]            ; Mueve la posicion x del alien a ax
+    sub     ax, [alienv]            ; Resta la velocidad del alien a ax
+    mov     [talienx], ax           ; Almacena la nueva posicion en una variable temporal
+    call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
+
+    cmp     ax, 00h                 ; Verifica si ax es 0
+    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+
+    mov     [alienx], ax            ; Sino, almacena ax en la posicion x del alien
 
     mov     ax, 02h                 ; Mueve 2 a ax
     mov     [alienm], ax            ; Almacena ax a la ultima direccion del alien
 
     ret                             ; Retornar
+    
+checkAlienColision:                 ; Funcion encargada de verificar las colisiones del alien
+    push    ax                      ; Almacena ax en el stack
+    mov     cx, [talienx]           ; Mueve la posicion temporal del alien x
+    mov     dx, [talieny]           ; Mueve la posicion temporal del alien y
+    mov     ah, 0dh                 ; Lee pixel
+    mov     bh, 00h                 ; Pagina
+    int     10h                     ; Ejecutar interrupcion
+
+    cmp     al, [flowersc]          ; Compara el pixel leido con el color de la flor
+    je      checkAlienFlowerColision ; En caso de que se cumpla, salta a la funcion de colision de flores
+
+    pop     ax                      ; Restaura ax del stack
+    ret                             ; Retornar
+
+checkAlienFlowerColision:           ; Funcion encargada de verificar colisiones del alien con la flor
+    pop     ax                      ; Restaura ax del stack
+    jmp     checkAlienFlowerColisionAux ; Salta a la funcion auxiliar
+
+checkAlienFlowerColisionAux:
+    mov     cx, [level]             ; Mueve a cx el nivel actual
+    cmp     cx, 01h                 ; Compara cx con 1
+    je      checkAlienFlowerColisionLevel1 ; Si el nivel es 1, salta a la funcion encargada de colisiones del alien con la flor del primer nivel
+    ;jmp     checkVerticalAlienFlowerColisionLevel2
+
+checkAlienFlowerColisionLevel1:     ; Funcion encargada de verificar colisiones del alien con la flor del primer nivel
+    mov     bx, flowersx1           ; Mueve a bx el puntero de las posiciones x de las flores
+   
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    add     bx, cx                  ; Suma el contador al puntero de posiciones x
+    mov     dx, [bx]                ; Mueve a dx la posicion x de la flor
+
+    cmp     dx, [talienx]           ; Compara la posicion x de la flor con la del alien
+    je      checkAlienFlowerColisionLevel1Aux1 ; Salta a la funcion auxiliar 1
+    jmp     checkAlienFlowerColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+
+checkAlienFlowerColisionLevel1Aux1:
+    mov     bx, flowersy1           ; Mueve a bx el puntero de las posiciones y de las flores
+
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    add     bx, cx                  ; Suma el contador al puntero de posiciones y
+    mov     dx, [bx]                ; Mueve a dx la posicion x de la flor
+
+    cmp     dx, [talieny]           ; Compara la posicion y de la flor con la del alien
+    je      checkAlienFlowerColisionLevel1Aux2 ; Salta a la funcion auxiliar 2
+    jmp     checkAlienFlowerColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+
+checkAlienFlowerColisionLevel1Aux2:
+    mov     bx, flowersb1           ; Mueve a bx el puntero de las indicadores de activacion de las flores
+
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    add     bx, cx                  ; Suma el contador al puntero de indicadores
+    mov     dx, 00h                 ; Mueve a dx un 0
+    mov     [bx], dx                ; Almacena dx en la posicion actual del puntero de indicadores
+    mov     [flowersi], dx          ; Almacena dx en la posicion actual del contador de flores
+
+    mov     bx, 02h                 ; Mueve a dx un 2
+    add     [bulletq], bx           ; Suma dx a la cantidad de balas
+
+    ret                             ; Retornar
+
+checkAlienFlowerColisionLevel1Aux3:
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    add     cx, 02h                 ; Suma 2 a cx
+    mov     [flowersi], cx          ; Mueve cx al contador de flores
+
+    jmp     checkAlienFlowerColisionLevel1 ; Salta a la primer funcion
+
 
 times   (512*2)-($-$$) db 0         ; Tamaño del codigo

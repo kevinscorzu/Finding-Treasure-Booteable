@@ -21,7 +21,7 @@ startBootloader:                     ; Funcion encargada de iniciar el bootloade
         int 13h                      ; Ejecutar interrupcion
         jc error                     ; En caso de error, salta a la funcion encargada de escribir el mensaje
                        
-        mov bx, 0x8000               ; Posicion de memoria de ram donde se escribira el juego
+        mov bx, 8000h                ; Posicion de memoria de ram donde se escribira el juego
         mov al, SECTOR_AMOUNT        ; Sectores a leer
         mov ch, 00h                  ; Pista
         mov dh, 00h                  ; Cabeza
