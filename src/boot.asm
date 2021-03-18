@@ -1,53 +1,54 @@
-org 0x7c00
-bits 16
+org 0x7C00                           ; Posicion de memoria inicial del bootloader
+%define SECTOR_AMOUNT 02h            ; Cantidad de sectores a leer
 
-    jmp short start                 ; Salta al inicio del programa
+        jmp short startBootloader    ; Salta al inicio del bootloader
+        nop                          ; Sin operacion
 
-%include "src/draw.asm"
-%include "src/movement.asm"
+errorMsg db "Error de carga...", 0h  ; Mensaje de error
 
-width   dw  140h                    ; Ancho de la pantalla 320
-height  dw  0c8h                    ; Alto de la pantalla 200
+startBootloader:                     ; Funcion encargada de iniciar el bootloader
+        cli                          ; Desactiva interrupciones
+        xor ax, ax                   ; Vacia ax
+        mov ds, ax                   ; Vacia ds
+        mov ss, ax                   ; Vacia ss
+        mov es, ax                   ; Vacia es
+        mov fs, ax                   ; Vacia fs
+        mov gs, ax                   ; Vacia gs
+        mov sp, 6ef0h                ; Configura el stack
+        sti                          ; Activa interrupciones
 
-time    db  0
+        mov ah, 00h                  ; Reinicia disco
+        int 13h                      ; Ejecutar interrupcion
+        jc error                     ; En caso de error, salta a la funcion encargada de escribir el mensaje
+                       
+        mov bx, 0x8000               ; Posicion de memoria de ram donde se escribira el juego
+        mov al, SECTOR_AMOUNT        ; Sectores a leer
+        mov ch, 00h                  ; Pista
+        mov dh, 00h                  ; Cabeza
+        mov cl, 02h                  ; Sector
+        mov ah, 02h                  ; Leer del dispositivo
+        int 13h   		     ; Ejecutar interrupcion
+        jc error                     ; En caso de error, salta a la funcion encargada de escribir el mensaje
+        jmp 8000h                    ; Salta al inicio del juego
 
-alienx  dw  0ah                     ; Posicion x del alien 
-alieny  dw  0ah                     ; Posicion y del alien
 
-alienvx dw  02h                     ; Velocidad x del alien
-alienvy dw  02h                     ; Velocidad y del alien
+error:                               ; Funcion encargada de escrbir el error
+        mov si, errorMsg             ; Mueve a si el puntero del mensaje de error
+        mov bh, 00h                  ; Pagina
+        mov bl, 07h                  ; Texto
+        mov ah, 0eh                  ; Imprimir char
+        jmp errorAux
 
-aliensize   dw  0ah                 ; Altura y ancho del alien
+errorAux:
+        lodsb                        ; Carga char
+        sub al, 00h                  ; Verificar si es cero
+        jz end                       ; En caso de que si, salta a fin
+        int 10h                      ; Ejecutar interrupcion
+        jmp errorAux                 ; Salta a errorAux
+        
+end:                                 ; Funcion encargada de salir
+        jmp $                        ; Encicla el programa
 
-start:                              ; Funcion de inicio del programa
-    call    initializeBootloader    ; Llama a la funcion para inicializar el bootloader
-    call    initializeDisplay       ; Llama a la funcion para inicializar el display
-    jmp     mainLoop                ; Salta a la funcion principal del programa
-
-initializeBootloader:               ; Funcion requerida para inicializar el bootloader
-    xor     ax, ax                  ; Limpia el registro ax
-    mov     ds, ax                  ; Limpia el registro ds
-    mov     es, ax                  ; Limpia el registro es
-    ret                             ; Retornar
-
-initializeDisplay:                  ; Funcion requerida para inicializar el display
-    mov     ah, 00h                 ; Activar el modo video
-    mov     al, 13h                 ; 320x200 256 colores
-    int     10h                     ; Ejecutar interrupcion
-    ret                             ; Retornar
-
-mainLoop:                           ; Funcion principal del programa
-    mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
-    int     1ah                     ; Ejecutar interrupcion
-
-    cmp     dl, [time]              ; Compara el tiempo actual con el tiempo anterior
-    je      mainLoop                ; Si son iguales vuelve a calcular el ciclo
-    mov     [time], dl              ; Sino, almacena el nuevo tiempo
-
-    call    moveAlien               ; Llama a la funcion para mover el alien
-    call    clearScreen             ; Llama a la funcion para limpiar la pantalla
-    call    drawAlien               ; Llama a la funcion para dibujar al alien
-    jmp     mainLoop                ; Salta al incio de la funcion
-
-times   510-($-$$) db 0
-dw      0xaa55
+times 510-($-$$) db 0                ; Escribe los bytes restantes de ceros
+db 0x55                              ; Parte 1 del numero magico
+db 0xaa                              ; Parte 2 del numero magico
