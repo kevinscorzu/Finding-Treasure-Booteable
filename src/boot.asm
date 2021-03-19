@@ -1,5 +1,5 @@
 org 0x7C00                           ; Posicion de memoria inicial del bootloader
-%define SECTOR_AMOUNT 02h            ; Cantidad de sectores a leer
+%define SECTOR_AMOUNT 04h            ; Cantidad de sectores a leer
 
         jmp short startBootloader    ; Salta al inicio del bootloader
         nop                          ; Sin operacion

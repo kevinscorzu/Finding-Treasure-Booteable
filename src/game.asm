@@ -1,7 +1,7 @@
 org 0x8000                          ; Posicion de memoria inicial del kernel
 bits 16                             ; Cantidad de bits a utilizar
 
-    jmp short startGame             ; Salta al inicio del programa
+    jmp startGame                   ; Salta al inicio del programa
     nop                             ; Sin operacion
 
 ; Seccion de Variables
@@ -26,9 +26,11 @@ alienm dw  00h                      ; Ultima direccion del alien (0 der, 1 aba, 
 
 bulletx dw  05h                     ; Posicion x de la bala
 bullety dw  05h                     ; Posicion y de la bala
+tbulletx dw 05h
+tbullety dw 05h
 bulletv dw  0ah                     ; Velocidad de la bala
 bulletc dw  0ch                     ; Color de la bala
-bullets dw  03h                     ; Altura y ancho de la bala
+bullets dw  05h                     ; Altura y ancho de la bala
 bulletb dw  00h                     ; Bala en pantalla (0 no, 1 si)
 bulletd dw  00h                     ; Direccion de la bala (0 der, 1 aba, 2 izq, 3 arr)
 bulletq dw  00h                     ; Cantidad de balas del alien
@@ -39,15 +41,34 @@ flowersi dw 00h                     ; Indice para contar flores
 flowerx dw 00h                      ; Posicion x de la flor actual
 flowery dw 00h                      ; Posicion y de la flor actual
 
-flowersx1 dw 0fh, 19h, 41h, 41h, 73h, 7dh, 87h         ; Posicion x de las flores nivel 1
-flowersy1 dw 37h, 73h, 19h, 87h, 7dh, 19h, 41h         ; Posicion y de las flores nivel 1
-flowersb1 dw 01h, 01h, 01h, 01h, 01h, 01h, 01h         ; Flores en pantalla (0 no, 1 si) nivel 1
+flowersx1 dw 0fh, 19h, 41h, 41h, 73h, 7dh, 87h ; Posicion x de las flores nivel 1
+flowersy1 dw 37h, 73h, 19h, 87h, 7dh, 19h, 41h ; Posicion y de las flores nivel 1
+flowersb1 dw 01h, 01h, 01h, 01h, 01h, 01h, 01h ; Flores en pantalla (0 no, 1 si) nivel 1
 flowersa1 dw 0eh                    ; Cantidad de flores nivel 1
+
+wallsc1 dw 01h                      ; Color 1 de las paredes
+wallsc2 dw 0bh                      ; Color 2 de las paredes
+twallsc dw 00h                      ; Color actual a pintar
+wallss dw 05h                       ; Altura y ancho de las paredes
+wallsi dw 00h                       ; Indice para contar las paredes
+wallx dw 00h                        ; Posicion x de la pared actual
+wally dw 00h                        ; Posicion y de la pared actual
+
+wallsx1 dw 37h, 41h, 4bh, 2dh, 37h, 41h, 4bh, 55h, 23h, 2dh, 55h, 5fh, 23h, 2dh, 55h, 5fh, 23h, 2dh, 55h, 5fh, 2dh, 37h, 41h, 4bh, 55h, 37h, 41h, 4bh ; Posicion x de las paredes nivel 1
+wallsy1 dw 23h, 23h, 23h, 2dh, 2dh, 2dh, 2dh, 2dh, 37h, 37h, 37h, 37h, 41h, 41h, 41h, 41h, 4bh, 4bh, 4bh, 4bh, 55h, 55h, 55h, 55h, 55h, 5fh, 5fh, 5fh ; Posicion y de las paredes nivel 1
+wallsb1 dw 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h ; Paredes en pantalla (0 no, 1 celeste claro, 2 celeste oscuro) nivel 1
+wallsa1 dw 38h                      ; Cantidad de paredes nivel 1
+
+wallsx times 71 dw 00h
+wallsy times 71 dw 00h
+wallsb times 71 dw 00h
+wallsa dw 00h
 
 ; Seccion de logica del juego
 
 startGame:                          ; Funcion de inicio del programa
     call    initializeDisplay       ; Llama a la funcion para inicializar el display
+    call    setLevel1
     jmp     mainLoop                ; Salta a la funcion principal del programa
 
 initializeDisplay:                  ; Funcion requerida para inicializar el display
@@ -55,6 +76,56 @@ initializeDisplay:                  ; Funcion requerida para inicializar el disp
     mov     al, 13h                 ; 320x200 256 colores
     int     10h                     ; Ejecutar interrupcion
     ret                             ; Retornar
+
+setLevel1:
+    mov     ax, [wallsa1]
+    mov     [wallsa], ax
+    mov     cx, 00h
+    jmp     setLevel1Aux
+
+setLevel1Aux:
+    cmp     cx, [wallsa]
+    je      setLevel1Aux2
+    mov     bx, wallsx1
+    add     bx, cx
+    mov     ax, [bx]
+    mov     bx, wallsx
+    add     bx, cx
+    mov     [bx], ax
+    add     cx, 2
+    jmp     setLevel1Aux
+
+setLevel1Aux2:
+    mov     cx, 00h
+    jmp     setLevel1Aux3
+
+setLevel1Aux3:
+    cmp     cx, [wallsa]
+    je      setLevel1Aux4
+    mov     bx, wallsy1
+    add     bx, cx
+    mov     ax, [bx]
+    mov     bx, wallsy
+    add     bx, cx
+    mov     [bx], ax
+    add     cx, 2
+    jmp     setLevel1Aux3
+
+setLevel1Aux4:
+    mov     cx, 00h
+    jmp     setLevel1Aux5
+
+setLevel1Aux5:
+    cmp     cx, [wallsa]
+    je      exitRoutine
+    mov     bx, wallsb1
+    add     bx, cx
+    mov     ax, [bx]
+    mov     bx, wallsb
+    add     bx, cx
+    mov     [bx], ax
+    add     cx, 2
+    jmp     setLevel1Aux5
 
 mainLoop:                           ; Funcion principal del programa
     mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
@@ -70,6 +141,7 @@ mainLoop:                           ; Funcion principal del programa
     call    drawAlien               ; Llama a la funcion para dibujar al alien
     call    drawBullet              ; Llama a la funcion para dibujar la bala
     call    drawFlowers             ; Llama a la funcion para dibujar las flores
+    call    drawWalls
     
     jmp     mainLoop                ; Salta al incio de la funcion
 
@@ -226,6 +298,87 @@ exitFlowers:
 
     ret                             ; Retornar
 
+drawWalls:                          ; Funcion encargada de dibujar las paredes
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    cmp     cx, [wallsa]            ; Compara el contador con la cantidad de paredes del primer nivel
+    je      exitWalls               ; Si son iguales salta a la funcion de salida
+
+    mov     bx, wallsb              ; Mueve el puntero del primer elemento de la lista que indica si una pared esta activa o no
+    add     bx, cx                  ; Suma el contador al puntero
+
+    mov     ax, [bx]                ; Obtiene la pared actual
+    cmp     ax, 00h                 ; Compara la pared con 0 para ver si tiene que ser dibujada
+    je      drawWallsAux            ; En caso de que no salta a la funcion auxiliar
+    jmp     drawWallsAux2           ; Sino, salta a la funcion auxiliar 2
+
+drawWallsAux:
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     cx, 02h                 ; Suma 2 a cx
+    mov     [wallsi], cx            ; Guarda el nuevo contador
+
+    jmp     drawWalls               ; Salta a la funcion de dibujo principal
+
+drawWallsAux2:
+    cmp     ax, 02h                 ; Compara la pared con 2 para ver de que color es
+    je      drawWallsAux3           ; Si tiene toda la vida salta a la funcion auxiliar 3
+    jmp     drawWallsAux4           ; Si tiene la mitad de la vida salta a la funcion auxiliar 4
+
+drawWallsAux3:
+    mov     ax, [wallsc1]           ; Mueve el color de pared 1 a ax
+    mov     [twallsc], ax           ; Almacena ax en el color temporal de pared
+    jmp     drawWallsAux5           ; Salta a la funcion auxiliar 5
+
+drawWallsAux4:
+    mov     ax, [wallsc2]           ; Mueve el color de pared 2 a ax
+    mov     [twallsc], ax           ; Almacena ax en el color temporal de pared
+    jmp     drawWallsAux5           ; Salta a la funcion auxiliar 5
+
+drawWallsAux5:
+    mov     ax, [wallsi]            ; Mueve el contador de las paredes a ax
+
+    mov     bx, wallsx              ; Mueve el puntero del primer elemento de la lista de las posiciones x de las paredes
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion x de la pared actual
+    mov     [wallx], ax             ; La almacena en la variable que contiene la posicion x de la pared actual
+    mov     cx, [wallx]             ; Mueve la posicion inicial x a cx
+
+    mov     ax, [wallsi]            ; Mueve el contador de las paredes a ax
+
+    mov     bx, wallsy              ; Mueve el puntero del primer elemento de la lista de las posiciones y de las paredes
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion y de la pared actual
+    mov     [wally], ax             ; La almacena en la variable que contiene la posicion y de la pared actual
+    mov     dx, [wally]             ; Mueve la posicion inicial y a dx
+
+    jmp     drawWallsAux6           ; Salta a la funcion auxliar 6
+
+drawWallsAux6:
+    mov     ah, 0ch                 ; Dibuja pixel
+    mov     al, [twallsc]           ; Color de la pared
+    mov     bh, 00h                 ; Pagina
+    int     10h                     ; Ejecutar interrupcion
+    inc     cx                      ; Suma uno a cx
+    mov     ax, cx                  ; Mueve cx a ax
+    sub     ax, [wallx]             ; Resta el ancho de la pared a la columna actual
+    cmp     ax, [wallss]            ; Compara resultado de la resta con el ancho
+    jng     drawWallsAux6           ; Si ax no es mayor que el ancho de la pared, salta a dibujar en la siguiente columna
+    jmp     drawWallsAux7           ; Sino, salta a la funcion auxiliar 2
+
+drawWallsAux7:                  
+    mov     cx, [wallx]             ; Reinicia las columnas
+    inc     dx                      ; Suma uno a dx
+    mov     ax, dx                  ; Mueve dx a ax
+    sub     ax, [wally]             ; Resta el alto de la pared a la fila actual
+    cmp     ax, [wallss]            ; Compara resultado de la resta con la altura
+    jng     drawWallsAux6           ; Si ax no es mayor que el ancho de la pared, salta a dibujar la siguiente fila
+    jmp     drawWallsAux            ; Sino, salta a la funcion auxliar
+
+exitWalls:
+    mov     ax, 00h                 ; Mueve un 0 a ax
+    mov     [wallsi], ax            ; Lo almacena en el contador de las paredes
+
+    ret                             ; Retornar
+
 ; Seccion de lectura del teclado
 
 checkKey:                           ; Funcion encargada de mover el alien
@@ -275,11 +428,9 @@ shootBullet:                        ; Funcion encargada de activar la bala
     mov     [bulletd], ax           ; Guarda la ultima direccion del alien a la bala (para que sean iguales)
 
     mov     ax, [alienx]            ; Mueve la posicion x del alien a ax
-    add     ax, 01h                 ; Suma 1 a ax
     mov     [bulletx], ax           ; Guarda la posicion x del alien a la bala
 
     mov     ax, [alieny]            ; Mueve la posicion y del alien a ax
-    add     ax, 01h                 ; Suma 1 a ax
     mov     [bullety], ax           ; Guarda la posicion y del alien a la bala
 
     ret                             ; Retornar
@@ -291,7 +442,6 @@ clearBullet:                        ; Funcion encargada de desactivar la bala
     mov     [bulletb], ax           ; Guarda el 0 al indicador de bala en pantalla
 
     ret                             ; Retornar
-
 
 moveBullet:                         ; Funcion encargada de mover la bala
     mov     ax, 00h                 ; Mueve 0 a ax
@@ -316,50 +466,128 @@ moveBullet:                         ; Funcion encargada de mover la bala
     ret                             ; Retornar
 
 moveBulletUp:                       ; Funcion encargada de mover la bala hacia arriba
-    mov     ax, 06h                 ; Mueve 6 a ax
+    mov     ax, 05h                 ; Mueve 6 a ax
     cmp     [bullety], ax           ; Compara la posicion y de la bala con ax
     je      clearBullet             ; Si son iguales, salta a la funcion de salida
 
     call    deleteBullet            ; Llama a la funcion encargada de eliminar la bala
+
     mov     ax, [bulletv]           ; Mueve la velocidad de la bala a ax
-    sub     [bullety], ax           ; Resta la velocidad a la posicion y
+    sub     [bullety], ax           ; Resta la velocidad de la bala a la posicion y de esta
+
+    call    checkBulletColision     ; Llama a la funcion para revisar colisiones de la balas
 
     ret                             ; Retornar
 
 moveBulletDown:                     ; Funcion encargada de mover la bala hacia abajo
     mov     ax, [gameHeight]        ; Mueve el alto del juego a ax
-    add     ax, 06h                 ; Suma 6 a ax
+    add     ax, 05h                 ; Suma 6 a ax
     cmp     [bullety], ax           ; Compara la posicion y de la bala con el alto del juego
     je      clearBullet             ; Si son iguales, salta a la funcion de salida
 
     call    deleteBullet            ; Llama a la funcion encargada de eliminar la bala
+    
     mov     ax, [bulletv]           ; Mueve la velocidad de la bala a ax
-    add     [bullety], ax           ; Suma la velocidad a la posicion y
+    add     [bullety], ax           ; Suma la velocidad de la bala a la posicion y de esta
+
+    call    checkBulletColision     ; Llama a la funcion para revisar colisiones de la balas
 
     ret                             ; Retornar
 
 moveBulletRight:                    ; Funcion encargada de mover la bala hacia la derecha
     mov     ax, [gameWidht]         ; Mueve el ancho del juego a ax
-    add     ax, 06h                 ; Suma 6 a ax
+    add     ax, 05h                 ; Suma 6 a ax
     cmp     [bulletx], ax           ; Compara la posicion x de la bala con el ancho del juego
     je      clearBullet             ; Si son iguales, salta a la funcion de salida
 
     call    deleteBullet            ; Llama a la funcion encargada de eliminar la bala
+    
     mov     ax, [bulletv]           ; Mueve la velocidad de la bala a ax
-    add     [bulletx], ax           ; Suma la velocidad a la posicion x
+    add     [bulletx], ax           ; Suma la velocidad de la bala a la posicion x de esta
+
+    call    checkBulletColision     ; Llama a la funcion para revisar colisiones de la balas
 
     ret                             ; Retornar
 
 moveBulletLeft:                     ; Funcion encargada de mover la bala hacia la izquierda
-    mov     ax, 06h                 ; Mueve 6 a ax
+    mov     ax, 05h                 ; Mueve 6 a ax
     cmp     [bulletx], ax           ; Compara la posicion x de la bala con 0
     je      clearBullet             ; Si son iguales, salta a la funcion de salida
 
     call    deleteBullet            ; Llama a la funcion encargada de eliminar la bala
+    
     mov     ax, [bulletv]           ; Mueve la velocidad de la bala a ax
-    sub     [bulletx], ax           ; Resta la velocidad a la posicion x
+    sub     [bulletx], ax           ; Resta la velocidad de la bala a la posicion x de esta
+
+    call    checkBulletColision     ; Llama a la funcion para revisar colisiones de la balas
 
     ret                             ; Retornar
+
+checkBulletColision:                ; Funcion encargada de verificar las colisiones del alien
+    push    ax                      ; Almacena ax en el stack
+    mov     cx, [bulletx]           ; Mueve la posicion x de la bala
+    mov     dx, [bullety]           ; Mueve la posicion y de la bala
+    mov     ah, 0dh                 ; Lee pixel
+    mov     bh, 00h                 ; Pagina
+    int     10h                     ; Ejecutar interrupcion
+
+    ;cmp     al, [boss]             ; Compara el pixel leido con el color del jefe
+    ;je      checkAlienFlowerColision ; En caso de que se cumpla, salta a la funcion de colision de flores
+    cmp     al, [wallsc1]           ; Compara el pixel leido con el color 1 de la pared
+    je      checkBulletWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
+    cmp     al, [wallsc2]           ; Compara el pixel leido con el color 1 de la pared
+    je      checkBulletWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
+
+    pop     ax                      ; Restaura ax del stack
+    ret                             ; Retornar
+
+checkBulletWallColision:            ; Funcion encargada de verificar colisiones de la bala con las paredes
+    pop     ax                      ; Restaura ax del stack
+    jmp     checkBulletWallColisionAux ; Salta a la funcion auxiliar
+
+checkBulletWallColisionAux:
+    mov     bx, wallsx              ; Mueve a bx el puntero de las posiciones x de las paredes
+   
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     bx, cx                  ; Suma el contador al puntero de posiciones x
+    mov     dx, [bx]                ; Mueve a dx la posicion x de la pared
+
+    cmp     dx, [bulletx]           ; Compara la posicion x de la pared con la de la bala
+    je      checkBulletWallColisionAux2 ; Salta a la funcion auxiliar 3
+    jmp     checkBulletWallColisionAux4 ; Salta a la funcion auxiliar 4
+
+checkBulletWallColisionAux2:
+    mov     bx, wallsy              ; Mueve a bx el puntero de las posiciones y de las paredes
+
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     bx, cx                  ; Suma el contador al puntero de posiciones y
+    mov     dx, [bx]                ; Mueve a dx la posicion x de la pared
+
+    cmp     dx, [bullety]           ; Compara la posicion y de la pared con la bala
+    je      checkBulletWallColisionAux3 ; Salta a la funcion auxiliar 3
+    jmp     checkBulletWallColisionAux4 ; Salta a la funcion auxiliar 4
+
+checkBulletWallColisionAux3:
+    mov     bx, wallsb              ; Mueve a bx el puntero de las indicadores de activacion de las paredes
+
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     bx, cx                  ; Suma el contador al puntero de indicadores
+    mov     dx, 01h                 ; Mueve a dx un 0
+    sub     [bx], dx                ; Almacena dx en la posicion actual del puntero de indicadores
+    
+    mov     ax, 00h                 ; Mueve un 0 a ax
+    mov     [wallsi], ax            ; Almacena dx en la posicion actual del contador de paredes
+
+    call    clearBullet             ; Llama la funcion para limpiar la bala
+
+    ret                             ; Retornar
+
+checkBulletWallColisionAux4:
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     cx, 02h                 ; Suma 2 a cx
+    mov     [wallsi], cx            ; Mueve cx al contador de paredes
+
+    jmp     checkBulletWallColisionAux ; Salta a la primer funcion
 
 moveAlienUp:                        ; Funcion encargada de mover el alien hacia arriba
     mov     ax, 05h                 ; Mueve 5 a ax
@@ -374,7 +602,7 @@ moveAlienUp:                        ; Funcion encargada de mover el alien hacia 
     call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
 
     cmp     ax, 00h                 ; Verifica si ax es 0
-    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+    je      exitAlienMovement       ; En caso de serlo, significa que la nueva posicion es invalida, y salta a la funcion de salida
 
     mov     [alieny], ax            ; Sino, almacena ax en la posicion y del alien
     
@@ -397,7 +625,7 @@ moveAlienDown:                      ; Funcion encargada de mover el alien hacia 
     call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
 
     cmp     ax, 00h                 ; Verifica si ax es 0
-    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+    je      exitAlienMovement       ; En caso de serlo, significa que la nueva posicion es invalida, y salta a la funcion de salida
 
     mov     [alieny], ax            ; Sino, almacena ax en la posicion y del alien
 
@@ -420,7 +648,7 @@ moveAlienRight:                     ; Funcion encargada de mover el alien hacia 
     call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
 
     cmp     ax, 00h                 ; Verifica si ax es 0
-    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+    je      exitAlienMovement       ; En caso de serlo, significa que la nueva posicion es invalida, y salta a la funcion de salida
 
     mov     [alienx], ax            ; Sino, almacena ax en la posicion x del alien
 
@@ -442,7 +670,7 @@ moveAlienLeft:                      ; Funcion encargada de mover el alien hacia 
     call    checkAlienColision      ; Llama a la funcion para detectar colisiones del alien
 
     cmp     ax, 00h                 ; Verifica si ax es 0
-    je      exitRoutine             ; En caso de serlo, significa que la nueva posicion es invalida, y salta al salto de funcion
+    je      exitAlienMovement       ; En caso de serlo, significa que la nueva posicion es invalida, y salta a la funcion de salida
 
     mov     [alienx], ax            ; Sino, almacena ax en la posicion x del alien
 
@@ -450,7 +678,15 @@ moveAlienLeft:                      ; Funcion encargada de mover el alien hacia 
     mov     [alienm], ax            ; Almacena ax a la ultima direccion del alien
 
     ret                             ; Retornar
-    
+
+exitAlienMovement:
+    mov     ax, [alienx]            ; Mueve la posicion x del alien a ax
+    mov     [talienx], ax           ; Almacena ax a la posicion temporal x del alien
+    mov     ax, [alieny]            ; Mueve la posicion y del alien a ax
+    mov     [talieny], ax           ; Almacena ax a la posicion temporal y del alien
+
+    ret                             ; Retornar
+
 checkAlienColision:                 ; Funcion encargada de verificar las colisiones del alien
     push    ax                      ; Almacena ax en el stack
     mov     cx, [talienx]           ; Mueve la posicion temporal del alien x
@@ -461,6 +697,10 @@ checkAlienColision:                 ; Funcion encargada de verificar las colisio
 
     cmp     al, [flowersc]          ; Compara el pixel leido con el color de la flor
     je      checkAlienFlowerColision ; En caso de que se cumpla, salta a la funcion de colision de flores
+    cmp     al, [wallsc1]           ; Compara el pixel leido con el color 1 de la pared
+    je      checkAlienWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
+    cmp     al, [wallsc2]           ; Compara el pixel leido con el color 1 de la pared
+    je      checkAlienWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
 
     pop     ax                      ; Restaura ax del stack
     ret                             ; Retornar
@@ -473,7 +713,7 @@ checkAlienFlowerColisionAux:
     mov     cx, [level]             ; Mueve a cx el nivel actual
     cmp     cx, 01h                 ; Compara cx con 1
     je      checkAlienFlowerColisionLevel1 ; Si el nivel es 1, salta a la funcion encargada de colisiones del alien con la flor del primer nivel
-    ;jmp     checkVerticalAlienFlowerColisionLevel2
+    ;jmp     checkAlienFlowerColisionLevel2
 
 checkAlienFlowerColisionLevel1:     ; Funcion encargada de verificar colisiones del alien con la flor del primer nivel
     mov     bx, flowersx1           ; Mueve a bx el puntero de las posiciones x de las flores
@@ -518,5 +758,48 @@ checkAlienFlowerColisionLevel1Aux3:
 
     jmp     checkAlienFlowerColisionLevel1 ; Salta a la primer funcion
 
+checkAlienWallColision:
+    pop     ax                      ; Restaura ax del stack
+    jmp     checkAlienWallColisionAux ; Salta a la funcion auxiliar
 
-times   (512*2)-($-$$) db 0         ; Tamaño del codigo
+checkAlienWallColisionAux:
+    mov     cx, [level]             ; Mueve a cx el nivel actual
+    cmp     cx, 01h                 ; Compara cx con 1
+    je      checkAlienWallColisionLevel1 ; Si el nivel es 1, salta a la funcion encargada de colisiones del alien con la pared del primer nivel
+    ;jmp     checkAlienWallColisionLevel2
+
+checkAlienWallColisionLevel1:
+    mov     bx, wallsx1           ; Mueve a bx el puntero de las posiciones x de las paredes
+   
+    mov     cx, [wallsi]          ; Mueve el contador de las paredes a cx
+    add     bx, cx                ; Suma el contador al puntero de posiciones x
+    mov     dx, [bx]              ; Mueve a dx la posicion x de la pared
+
+    cmp     dx, [talienx]         ; Compara la posicion x de la pared con la del alien
+    je      checkAlienWallColisionLevel1Aux1 ; Salta a la funcion auxiliar 1
+    jmp     checkAlienWallColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+
+checkAlienWallColisionLevel1Aux1:
+    mov     bx, wallsy1           ; Mueve a bx el puntero de las posiciones y de las paredes
+
+    mov     cx, [wallsi]          ; Mueve el contador de las paredes a cx
+    add     bx, cx                ; Suma el contador al puntero de posiciones y
+    mov     dx, [bx]              ; Mueve a dx la posicion x de la pared
+
+    cmp     dx, [talieny]         ; Compara la posicion y de la pared con la del alien
+    je      checkAlienWallColisionLevel1Aux2 ; Salta a la funcion auxiliar 2
+    jmp     checkAlienWallColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+
+checkAlienWallColisionLevel1Aux2:
+    mov     ax, 00h               ; Mueve un 0 a ax
+
+    ret                           ; Retornar
+
+checkAlienWallColisionLevel1Aux3:
+    mov     cx, [wallsi]          ; Mueve el contador de las paredes a cx
+    add     cx, 02h               ; Suma 2 a cx
+    mov     [wallsi], cx          ; Mueve cx al contador de paredes
+
+    jmp     checkAlienWallColisionLevel1 ; Salta a la primer funcion
+
+times   (512*4)-($-$$) db 0         ; Tamaño del codigo
