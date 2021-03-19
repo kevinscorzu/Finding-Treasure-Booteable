@@ -17,8 +17,8 @@ level dw 01h                        ; Nivel del juego
 
 alienx dw  05h                      ; Posicion x del alien 
 alieny dw  05h                      ; Posicion y del alien
-talienx dw 05h
-talieny dw 05h
+talienx dw 05h                      ; Posicion temporal x del alien
+talieny dw 05h                      ; Posicion temporal y del alien
 alienv dw  0ah                      ; Velocidad del alien
 alienc dw  02h                      ; Color del alien
 aliens dw  05h                      ; Altura y ancho del alien
@@ -26,8 +26,6 @@ alienm dw  00h                      ; Ultima direccion del alien (0 der, 1 aba, 
 
 bulletx dw  05h                     ; Posicion x de la bala
 bullety dw  05h                     ; Posicion y de la bala
-tbulletx dw 05h
-tbullety dw 05h
 bulletv dw  0ah                     ; Velocidad de la bala
 bulletc dw  0ch                     ; Color de la bala
 bullets dw  05h                     ; Altura y ancho de la bala
@@ -46,6 +44,11 @@ flowersy1 dw 37h, 73h, 19h, 87h, 7dh, 19h, 41h ; Posicion y de las flores nivel 
 flowersb1 dw 01h, 01h, 01h, 01h, 01h, 01h, 01h ; Flores en pantalla (0 no, 1 si) nivel 1
 flowersa1 dw 0eh                    ; Cantidad de flores nivel 1
 
+flowersx times 14 dw 00h            ; Posicion x de las flores
+flowersy times 14 dw 00h            ; Posicion y de las flores
+flowersb times 14 dw 00h            ; Flores en pantalla (0 no, 1 si)
+flowersa dw 00h                     ; Cantidad de flores
+
 wallsc1 dw 01h                      ; Color 1 de las paredes
 wallsc2 dw 0bh                      ; Color 2 de las paredes
 twallsc dw 00h                      ; Color actual a pintar
@@ -59,10 +62,10 @@ wallsy1 dw 23h, 23h, 23h, 2dh, 2dh, 2dh, 2dh, 2dh, 37h, 37h, 37h, 37h, 41h, 41h,
 wallsb1 dw 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h ; Paredes en pantalla (0 no, 1 celeste claro, 2 celeste oscuro) nivel 1
 wallsa1 dw 38h                      ; Cantidad de paredes nivel 1
 
-wallsx times 71 dw 00h
-wallsy times 71 dw 00h
-wallsb times 71 dw 00h
-wallsa dw 00h
+wallsx times 71 dw 00h              ; Posicion x de las paredes
+wallsy times 71 dw 00h              ; Posicion y de las paredes
+wallsb times 71 dw 00h              ; Paredes en pantalla (0 no, 1 si)
+wallsa dw 00h                       ; Cantidad de paredes
 
 ; Seccion de logica del juego
 
@@ -77,55 +80,105 @@ initializeDisplay:                  ; Funcion requerida para inicializar el disp
     int     10h                     ; Ejecutar interrupcion
     ret                             ; Retornar
 
-setLevel1:
-    mov     ax, [wallsa1]
-    mov     [wallsa], ax
-    mov     cx, 00h
-    jmp     setLevel1Aux
+setLevel1:                          ; Funcion encargada de iniciar el primer nivel del juego
+    mov     ax, [wallsa1]           ; Mueve a ax cantidad de paredes de nivel 1
+    mov     [wallsa], ax            ; Almacena la cantidad de paredes
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel1Aux            ; Salta a la funcion auxiliar
 
 setLevel1Aux:
-    cmp     cx, [wallsa]
-    je      setLevel1Aux2
-    mov     bx, wallsx1
-    add     bx, cx
-    mov     ax, [bx]
-    mov     bx, wallsx
-    add     bx, cx
-    mov     [bx], ax
-    add     cx, 2
-    jmp     setLevel1Aux
+    cmp     cx, [wallsa]            ; Compara el contador con la cantidad de paredes
+    je      setLevel1Aux2           ; Si son iguales salta a la funcion auxiliar 2
+    mov     bx, wallsx1             ; Mueve el puntero de posiciones x de paredes del nivel 1
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la pared actual a ax
+    mov     bx, wallsx              ; Mueve el puntero de posiciones x de paredes
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel1Aux            ; Salta al inicio de esta funcion
 
 setLevel1Aux2:
-    mov     cx, 00h
-    jmp     setLevel1Aux3
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel1Aux3           ; Salta a la funcion auxiliar 3
 
 setLevel1Aux3:
-    cmp     cx, [wallsa]
-    je      setLevel1Aux4
-    mov     bx, wallsy1
-    add     bx, cx
-    mov     ax, [bx]
-    mov     bx, wallsy
-    add     bx, cx
-    mov     [bx], ax
-    add     cx, 2
-    jmp     setLevel1Aux3
+    cmp     cx, [wallsa]            ; Compara el contador con la cantidad de paredes
+    je      setLevel1Aux4           ; Si son iguales salta a la funcion auxiliar 4
+    mov     bx, wallsy1             ; Mueve el puntero de posiciones y de paredes del nivel 1
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la pared actual a ax
+    mov     bx, wallsy              ; Mueve el puntero de posiciones y de paredes
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel1Aux3           ; Salta al inicio de esta funcion
 
 setLevel1Aux4:
-    mov     cx, 00h
-    jmp     setLevel1Aux5
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel1Aux5           ; Salta a la funcion auxiliar 5
 
 setLevel1Aux5:
-    cmp     cx, [wallsa]
-    je      exitRoutine
-    mov     bx, wallsb1
-    add     bx, cx
-    mov     ax, [bx]
-    mov     bx, wallsb
-    add     bx, cx
-    mov     [bx], ax
-    add     cx, 2
-    jmp     setLevel1Aux5
+    cmp     cx, [wallsa]            ; Compara el contador con la cantidad de paredes
+    je      setLevel1Aux6           ; Si son iguales salta a la funcion auxiliar 6
+    mov     bx, wallsb1             ; Mueve el puntero de paredes del nivel 1
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la pared actual a ax
+    mov     bx, wallsb              ; Mueve el puntero de posiciones de paredes
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel1Aux5           ; Salta al inicio de esta funcion
+
+setLevel1Aux6:
+    mov     ax, [flowersa1]         ; Mueve a ax cantidad de flores de nivel 1
+    mov     [flowersa], ax          ; Almacena la cantidad de flores
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel1Aux7           ; Salta a la funcion auxiliar 7
+
+setLevel1Aux7:
+    cmp     cx, [flowersa]          ; Compara el contador con la cantidad de flores
+    je      setLevel1Aux8           ; Si son iguales salta a la funcion auxiliar 8
+    mov     bx, flowersx1           ; Mueve el puntero de posiciones x de flores del nivel 1
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la flor actual a ax
+    mov     bx, flowersx            ; Mueve el puntero de posiciones x de flores
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel1Aux7           ; Salta al inicio de esta funcion
+
+setLevel1Aux8:
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel1Aux9           ; Salta a la funcion auxiliar 9
+
+setLevel1Aux9:
+    cmp     cx, [flowersa]          ; Compara el contador con la cantidad de flores
+    je      setLevel1Aux10          ; Si son iguales salta a la funcion auxiliar 10
+    mov     bx, flowersy1           ; Mueve el puntero de posiciones y de flores del nivel 1
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la flor actual a ax
+    mov     bx, flowersy            ; Mueve el puntero de posiciones y de flores
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel1Aux9           ; Salta al inicio de esta funcion
+
+setLevel1Aux10:
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel1Aux11          ; Salta a la funcion auxiliar 11
+
+setLevel1Aux11:
+    cmp     cx, [flowersa]          ; Compara el contador con la cantidad de flores
+    je      exitRoutine             ; Si son iguales salta a la funcion de salida
+    mov     bx, flowersb1           ; Mueve el puntero de flores del nivel 1
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la flor actual a ax
+    mov     bx, flowersb            ; Mueve el puntero de posiciones de flores
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel1Aux11          ; Salta al inicio de esta funcion
 
 mainLoop:                           ; Funcion principal del programa
     mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
@@ -226,13 +279,46 @@ drawBulletAux2:
     jng     drawBulletAux           ; Si ax no es mayor que el ancho de la bala, salta a dibujar la siguiente fila
     ret                             ; Sino, Retornar
 
-drawFlowers:                        ; Funcion encargada de dibujar la flor
-    mov     ax, 01h                 ; Mueve 1 a ax
-    cmp     [level], ax             ; Compara el nivel actual con ax
-    je      drawFlowersLevel1       ; Salta a configurar el nivel 1
-    ;jmp     drawFlowerAux?          ; Salta a configurar el nivel 2
+drawFlowers:                        ; Funcion encargada de dibujar las flores
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    cmp     cx, [flowersa]          ; Compara el contador con la cantidad de flores
+    je      exitFlowers             ; Si son iguales salta a la funcion de salida
+
+    mov     bx, flowersb            ; Mueve el puntero del primer elemento de la lista que indica si una flor esta activa o no
+    add     bx, cx                  ; Suma el contador al puntero
+
+    mov     ax, [bx]                ; Obtiene la flor actual
+    cmp     ax, 00h                 ; Compara la flor con 0 para ver si tiene que ser dibujada
+    je      drawFlowersAux          ; En caso de que no salta a la funcion auxiliar 3
+    jmp     drawFlowersAux2         ; Sino, salta a la funcion auxiliar 1
 
 drawFlowersAux:
+    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
+    add     cx, 02h                 ; Suma 2 a cx
+    mov     [flowersi], cx          ; Guarda el nuevo contador
+
+    jmp     drawFlowers             ; Salta a la funcion de dibujo principal
+
+drawFlowersAux2:
+    mov     ax, [flowersi]          ; Mueve el contador de las flores a ax
+
+    mov     bx, flowersx            ; Mueve el puntero del primer elemento de la lista de las posiciones x de las flores
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion x de la flor actual
+    mov     [flowerx], ax           ; La almacena en la variable que contiene la posicion x de la flor actual
+    mov     cx, [flowerx]           ; Mueve la posicion inicial x a cx
+
+    mov     ax, [flowersi]          ; Mueve el contador de las flores a ax
+
+    mov     bx, flowersy            ; Mueve el puntero del primer elemento de la lista de las posiciones y de las flores
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion y de la flor actual
+    mov     [flowery], ax           ; La almacena en la variable que contiene la posicion y de la flor actual
+    mov     dx, [flowery]           ; Mueve la posicion inicial y a dx
+
+    jmp     drawFlowersAux3         ; Salta a la funcion auxliar
+
+drawFlowersAux3:
     mov     ah, 0ch                 ; Dibuja pixel
     mov     al, [flowersc]          ; Color verde
     mov     bh, 00h                 ; Pagina
@@ -241,56 +327,17 @@ drawFlowersAux:
     mov     ax, cx                  ; Mueve cx a ax
     sub     ax, [flowerx]           ; Resta el ancho de la flor a la columna actual
     cmp     ax, [flowerss]          ; Compara resultado de la resta con el ancho
-    jng     drawFlowersAux          ; Si ax no es mayor que el ancho de la flor, salta a dibujar en la siguiente columna
-    jmp     drawFlowersAux2         ; Sino, salta a la funcion auxiliar 2
+    jng     drawFlowersAux3         ; Si ax no es mayor que el ancho de la flor, salta a dibujar en la siguiente columna
+    jmp     drawFlowersAux4         ; Sino, salta a la funcion auxiliar 2
 
-drawFlowersAux2:                  
+drawFlowersAux4:                  
     mov     cx, [flowerx]           ; Reinicia las columnas
     inc     dx                      ; Suma uno a dx
     mov     ax, dx                  ; Mueve dx a ax
     sub     ax, [flowery]           ; Resta el alto de la flor a la fila actual
     cmp     ax, [flowerss]          ; Compara resultado de la resta con la altura
-    jng     drawFlowersAux          ; Si ax no es mayor que el ancho de la flor, salta a dibujar la siguiente fila
-    jmp     drawFlowersAux3         ; Sino, salta a la funcion auxliar 3
-
-drawFlowersAux3:
-    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
-    add     cx, 02h                 ; Suma 2 a cx
-    mov     [flowersi], cx          ; Guarda el nuevo contador
-
-    jmp     drawFlowers             ; Salta a la funcion de dibujo principal
-
-drawFlowersLevel1:                  ; Funcion encargada de dibujar las flores del primer nivel
-    mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
-    cmp     cx, [flowersa1]         ; Compara el contador con la cantidad de flores del primer nivel
-    je      exitFlowers             ; Si son iguales salta a la funcion de salida
-
-    mov     bx, flowersb1           ; Mueve el puntero del primer elemento de la lista que indica si una flor esta activa o no
-    add     bx, cx                  ; Suma el contador al puntero
-
-    mov     ax, [bx]                ; Obtiene la flor actual
-    cmp     ax, 00h                 ; Compara la flor con 0 para ver si tiene que ser dibujada
-    je      drawFlowersAux3         ; En caso de que no salta a la funcion auxiliar 3
-    jmp     drawFlowersLevel1Aux    ; Sino, salta a la funcion auxiliar 1
-
-drawFlowersLevel1Aux:
-    mov     ax, [flowersi]          ; Mueve el contador de las flores a ax
-
-    mov     bx, flowersx1           ; Mueve el puntero del primer elemento de la lista de las posiciones x de las flores
-    add     bx, ax                  ; Suma el contador al puntero
-    mov     ax, [bx]                ; Obtiene la posicion x de la flor actual
-    mov     [flowerx], ax           ; La almacena en la variable que contiene la posicion x de la flor actual
-    mov     cx, [flowerx]           ; Mueve la posicion inicial x a cx
-
-    mov     ax, [flowersi]          ; Mueve el contador de las flores a ax
-
-    mov     bx, flowersy1           ; Mueve el puntero del primer elemento de la lista de las posiciones y de las flores
-    add     bx, ax                  ; Suma el contador al puntero
-    mov     ax, [bx]                ; Obtiene la posicion y de la flor actual
-    mov     [flowery], ax           ; La almacena en la variable que contiene la posicion y de la flor actual
-    mov     dx, [flowery]           ; Mueve la posicion inicial y a dx
-
-    jmp     drawFlowersAux          ; Salta a la funcion auxliar
+    jng     drawFlowersAux3         ; Si ax no es mayor que el ancho de la flor, salta a dibujar la siguiente fila
+    jmp     drawFlowersAux          ; Sino, salta a la funcion auxliar 3
 
 exitFlowers:
     mov     ax, 00h                 ; Mueve un 0 a ax
@@ -710,35 +757,29 @@ checkAlienFlowerColision:           ; Funcion encargada de verificar colisiones 
     jmp     checkAlienFlowerColisionAux ; Salta a la funcion auxiliar
 
 checkAlienFlowerColisionAux:
-    mov     cx, [level]             ; Mueve a cx el nivel actual
-    cmp     cx, 01h                 ; Compara cx con 1
-    je      checkAlienFlowerColisionLevel1 ; Si el nivel es 1, salta a la funcion encargada de colisiones del alien con la flor del primer nivel
-    ;jmp     checkAlienFlowerColisionLevel2
-
-checkAlienFlowerColisionLevel1:     ; Funcion encargada de verificar colisiones del alien con la flor del primer nivel
-    mov     bx, flowersx1           ; Mueve a bx el puntero de las posiciones x de las flores
+    mov     bx, flowersx            ; Mueve a bx el puntero de las posiciones x de las flores
    
     mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
     add     bx, cx                  ; Suma el contador al puntero de posiciones x
     mov     dx, [bx]                ; Mueve a dx la posicion x de la flor
 
     cmp     dx, [talienx]           ; Compara la posicion x de la flor con la del alien
-    je      checkAlienFlowerColisionLevel1Aux1 ; Salta a la funcion auxiliar 1
-    jmp     checkAlienFlowerColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+    je      checkAlienFlowerColisionAux2 ; Salta a la funcion auxiliar 1
+    jmp     checkAlienFlowerColisionAux4 ; Salta a la funcion auxiliar 3
 
-checkAlienFlowerColisionLevel1Aux1:
-    mov     bx, flowersy1           ; Mueve a bx el puntero de las posiciones y de las flores
+checkAlienFlowerColisionAux2:
+    mov     bx, flowersy            ; Mueve a bx el puntero de las posiciones y de las flores
 
     mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
     add     bx, cx                  ; Suma el contador al puntero de posiciones y
     mov     dx, [bx]                ; Mueve a dx la posicion x de la flor
 
     cmp     dx, [talieny]           ; Compara la posicion y de la flor con la del alien
-    je      checkAlienFlowerColisionLevel1Aux2 ; Salta a la funcion auxiliar 2
-    jmp     checkAlienFlowerColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+    je      checkAlienFlowerColisionAux3 ; Salta a la funcion auxiliar 2
+    jmp     checkAlienFlowerColisionAux4 ; Salta a la funcion auxiliar 3
 
-checkAlienFlowerColisionLevel1Aux2:
-    mov     bx, flowersb1           ; Mueve a bx el puntero de las indicadores de activacion de las flores
+checkAlienFlowerColisionAux3:
+    mov     bx, flowersb            ; Mueve a bx el puntero de las indicadores de activacion de las flores
 
     mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
     add     bx, cx                  ; Suma el contador al puntero de indicadores
@@ -751,55 +792,49 @@ checkAlienFlowerColisionLevel1Aux2:
 
     ret                             ; Retornar
 
-checkAlienFlowerColisionLevel1Aux3:
+checkAlienFlowerColisionAux4:
     mov     cx, [flowersi]          ; Mueve el contador de las flores a cx
     add     cx, 02h                 ; Suma 2 a cx
     mov     [flowersi], cx          ; Mueve cx al contador de flores
 
-    jmp     checkAlienFlowerColisionLevel1 ; Salta a la primer funcion
+    jmp     checkAlienFlowerColisionAux ; Salta a la primer funcion
 
-checkAlienWallColision:
+checkAlienWallColision:             ; Funcion encargada de verificar colisiones del alien con las paredes
     pop     ax                      ; Restaura ax del stack
     jmp     checkAlienWallColisionAux ; Salta a la funcion auxiliar
 
 checkAlienWallColisionAux:
-    mov     cx, [level]             ; Mueve a cx el nivel actual
-    cmp     cx, 01h                 ; Compara cx con 1
-    je      checkAlienWallColisionLevel1 ; Si el nivel es 1, salta a la funcion encargada de colisiones del alien con la pared del primer nivel
-    ;jmp     checkAlienWallColisionLevel2
-
-checkAlienWallColisionLevel1:
-    mov     bx, wallsx1           ; Mueve a bx el puntero de las posiciones x de las paredes
+    mov     bx, wallsx              ; Mueve a bx el puntero de las posiciones x de las paredes
    
-    mov     cx, [wallsi]          ; Mueve el contador de las paredes a cx
-    add     bx, cx                ; Suma el contador al puntero de posiciones x
-    mov     dx, [bx]              ; Mueve a dx la posicion x de la pared
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     bx, cx                  ; Suma el contador al puntero de posiciones x
+    mov     dx, [bx]                ; Mueve a dx la posicion x de la pared
 
-    cmp     dx, [talienx]         ; Compara la posicion x de la pared con la del alien
-    je      checkAlienWallColisionLevel1Aux1 ; Salta a la funcion auxiliar 1
-    jmp     checkAlienWallColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+    cmp     dx, [talienx]           ; Compara la posicion x de la pared con la del alien
+    je      checkAlienWallColisionAux2 ; Salta a la funcion auxiliar 2
+    jmp     checkAlienWallColisionAux4 ; Salta a la funcion auxiliar 4
 
-checkAlienWallColisionLevel1Aux1:
-    mov     bx, wallsy1           ; Mueve a bx el puntero de las posiciones y de las paredes
+checkAlienWallColisionAux2:
+    mov     bx, wallsy              ; Mueve a bx el puntero de las posiciones y de las paredes
 
-    mov     cx, [wallsi]          ; Mueve el contador de las paredes a cx
-    add     bx, cx                ; Suma el contador al puntero de posiciones y
-    mov     dx, [bx]              ; Mueve a dx la posicion x de la pared
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     bx, cx                  ; Suma el contador al puntero de posiciones y
+    mov     dx, [bx]                ; Mueve a dx la posicion x de la pared
 
-    cmp     dx, [talieny]         ; Compara la posicion y de la pared con la del alien
-    je      checkAlienWallColisionLevel1Aux2 ; Salta a la funcion auxiliar 2
-    jmp     checkAlienWallColisionLevel1Aux3 ; Salta a la funcion auxiliar 3
+    cmp     dx, [talieny]           ; Compara la posicion y de la pared con la del alien
+    je      checkAlienWallColisionAux3 ; Salta a la funcion auxiliar 3
+    jmp     checkAlienWallColisionAux4 ; Salta a la funcion auxiliar 4
 
-checkAlienWallColisionLevel1Aux2:
-    mov     ax, 00h               ; Mueve un 0 a ax
+checkAlienWallColisionAux3:
+    mov     ax, 00h                 ; Mueve un 0 a ax
 
-    ret                           ; Retornar
+    ret                             ; Retornar
 
-checkAlienWallColisionLevel1Aux3:
-    mov     cx, [wallsi]          ; Mueve el contador de las paredes a cx
-    add     cx, 02h               ; Suma 2 a cx
-    mov     [wallsi], cx          ; Mueve cx al contador de paredes
+checkAlienWallColisionAux4:
+    mov     cx, [wallsi]            ; Mueve el contador de las paredes a cx
+    add     cx, 02h                 ; Suma 2 a cx
+    mov     [wallsi], cx            ; Mueve cx al contador de paredes
 
-    jmp     checkAlienWallColisionLevel1 ; Salta a la primer funcion
+    jmp     checkAlienWallColisionAux ; Salta a la primer funcion
 
-times   (512*4)-($-$$) db 0         ; Tamaño del codigo
+times   (512*5)-($-$$) db 0         ; Tamaño del codigo
