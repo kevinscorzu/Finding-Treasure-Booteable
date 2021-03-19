@@ -15,6 +15,8 @@ time db  00h                        ; Tiempo utilizado para el framerate del jue
 
 level dw 01h                        ; Nivel del juego
 
+gamePause dw 00h                        ; Indicador de juego en pausa (0 no, 1 si)
+
 alienx dw  05h                      ; Posicion x del alien 
 alieny dw  05h                      ; Posicion y del alien
 talienx dw 05h                      ; Posicion temporal x del alien
@@ -32,6 +34,11 @@ bullets dw  05h                     ; Altura y ancho de la bala
 bulletb dw  00h                     ; Bala en pantalla (0 no, 1 si)
 bulletd dw  00h                     ; Direccion de la bala (0 der, 1 aba, 2 izq, 3 arr)
 bulletq dw  00h                     ; Cantidad de balas del alien
+
+bossx dw 41h                        ; Posicion x del jefe
+bossy dw 41h                        ; Posicion y del jefe
+bossc dw 04h                        ; Color del jefe
+bosss dw 05h                        ; Tamano del jefe
 
 flowersc dw 0eh                     ; Color de las flores
 flowerss dw 05h                     ; Altura y ancho de las flores
@@ -86,6 +93,20 @@ initializeDisplay:                  ; Funcion requerida para inicializar el disp
     ret                             ; Retornar
 
 setLevel1:                          ; Funcion encargada de iniciar el primer nivel del juego
+    mov     ax, 05h                 ; Mueve 5 a ax
+    mov     [alienx], ax            ; Mueve el 5 a la posicion inicial x del alien
+    mov     [alieny], ax            ; Mueve el 5 a la posicion inicial y del alien
+    mov     [talienx], ax           ; Mueve el 5 a la posicion inicial temporal x del alien
+    mov     [talieny], ax           ; Mueve el 5 a la posicion inicial temporal y del alien
+
+    mov     ax, 41h                 ; Mueve un 65 a ax
+    mov     [bossx], ax             ; Mueve el 65 a la posicion inicial x del jefe
+    mov     [bossy], ax             ; Mueve el 65 a la posicion inicial y del jefe
+
+    mov     ax, 00h                 ; Mueve 0 a ax
+    mov     [gamePause], ax         ; Mueve el contenido de ax a la variable de pausa
+    mov     [bulletq], ax           ; Mueve ax a la cantidad de balas del alien
+
     mov     ax, [wallsa1]           ; Mueve a ax cantidad de paredes de nivel 1
     mov     [wallsa], ax            ; Almacena la cantidad de paredes
     mov     cx, 00h                 ; Mueve 0 a cx
@@ -193,15 +214,15 @@ mainLoop:                           ; Funcion principal del programa
     je      mainLoop                ; Si son iguales vuelve a calcular el ciclo
     mov     [time], dl              ; Sino, almacena el nuevo tiempo
 
-    call    checkKey                ; Llama a la funcion para mover el alien
-    call    moveBullet              ; Llama a la funcion para mover la bala
+    call    checkPause              ; Llama a la funcion para mover el alien
 
     call    drawAlien               ; Llama a la funcion para dibujar al alien
     call    drawBullet              ; Llama a la funcion para dibujar la bala
     call    drawFlowers             ; Llama a la funcion para dibujar las flores
     call    drawWalls               ; Llama a la funcion para dibujar las paredes
-    
-    call    drawText
+    call    drawBoss                ; Llama a la funcion para dibujar al jefe
+
+    call    drawText                ; Llama a la funcion encargada de escribir texto
 
     jmp     mainLoop                ; Salta al incio de la funcion
 
@@ -284,6 +305,32 @@ drawBulletAux2:
     sub     ax, [bullety]           ; Resta el alto de la bala a la fila actual
     cmp     ax, [bullets]           ; Compara resultado de la resta con la altura
     jng     drawBulletAux           ; Si ax no es mayor que el ancho de la bala, salta a dibujar la siguiente fila
+    ret                             ; Sino, Retornar
+
+drawBoss:                           ; Funcion encargada de dibujar al jefe
+    mov     cx, [bossx]             ; Posicion inicial x del jefe
+    mov     dx, [bossy]             ; Posicion inicial y del jefe
+    jmp     drawBossAux             ; Salta a la funcion auxliar
+
+drawBossAux:
+    mov     ah, 0ch                 ; Dibuja pixel
+    mov     al, [bossc]             ; Color rojo
+    mov     bh, 00h                 ; Pagina
+    int     10h                     ; Ejecutar interrupcion
+    inc     cx                      ; Suma uno a cx
+    mov     ax, cx                  ; Mueve cx a ax
+    sub     ax, [bossx]             ; Resta el ancho del jefe a la columna actual
+    cmp     ax, [bosss]             ; Compara resultado de la resta con el ancho
+    jng     drawBossAux             ; Si ax no es mayor que el ancho del jefe, salta a dibujar en la siguiente columna
+    jmp     drawBossAux2            ; Sino, salta a la funcion auxiliar 2
+
+drawBossAux2:                  
+    mov     cx, [bossx]             ; Reinicia las columnas
+    inc     dx                      ; Suma uno a dx
+    mov     ax, dx                  ; Mueve dx a ax
+    sub     ax, [bossy]             ; Resta el alto del jefe a la fila actual
+    cmp     ax, [bosss]             ; Compara resultado de la resta con la altura
+    jng     drawBossAux             ; Si ax no es mayor que el ancho del jefe, salta a dibujar la siguiente fila
     ret                             ; Sino, Retornar
 
 drawFlowers:                        ; Funcion encargada de dibujar las flores
@@ -473,7 +520,15 @@ exitDrawText:
 
 ; Seccion de lectura del teclado
 
-checkKey:                           ; Funcion encargada de mover el alien
+checkPause:
+    mov     ax, 00h
+    cmp     ax, [gamePause]
+    je      makeMovements
+    jmp     checkPauseKey
+
+makeMovements:                      ; Funcion encargada de realizar movimientos en pantalla y deteccion de teclas
+    call    moveBullet              ; Llama a la funcion para mover la bala
+
     mov     ah, 01h                 ; Consigue el estado del teclado
     int     16h                     ; Ejecutar interrupcion
     jz      exitRoutine             ; Si no se esta presionando nada, salta a salir
@@ -493,10 +548,53 @@ checkKey:                           ; Funcion encargada de mover el alien
     cmp     ah, 4bh                 ; Si la tecla presionada es la Flecha Izquierda
     je      moveAlienLeft           ; Salta a mover el alien hacia la izquierda
 
-    cmp     ah, 39h                 ; Si la techa presionada es Espacio
+    cmp     ah, 39h                 ; Si la tecla presionada es Espacio
     je      shootBullet             ; Dispara una bala
 
+    cmp     ah, 26h                 ; Si la tecla presionada es l
+    je      pauseGame               ; Pausa el juego
+
+    cmp     ah, 6ch                 ; Si la tecla presionada es L
+    je      pauseGame               ; Pausa el juego
+
+    cmp     ah, 13h                 ; Si la tecla presionada es r
+    je      resetGame               ; Reinicia el juego
+
+    cmp     ah, 72h                 ; Si la tecla presionada es R
+    je      resetGame               ; Reinicia el juego
+
     ret                             ; Sino, Retornar
+
+checkPauseKey:                      ; Funcion encargada de verificar el fin de la pausa
+    mov     ah, 01h                 ; Consigue el estado del teclado
+    int     16h                     ; Ejecutar interrupcion
+    jz      exitRoutine             ; Si no se esta presionando nada, salta a salir
+    
+    mov     ah, 00h                 ; Lectura de tecla
+    int     16h                     ; Ejecutar interrupcion
+
+    cmp     ah, 26h                 ; Si la tecla presionada es l
+    je      unPauseGame             ; Quita la pausa del juego
+
+    cmp     ah, 6ch                 ; Si la tecla presionada es L
+    je      unPauseGame             ; Quita la pausa del juego
+
+    ret                             ; Sino, Retornar
+
+pauseGame:                          ; Funcion encargada de pausar el juego
+    mov     ax, 01h                 ; Mueve 1 a ax
+    mov     [gamePause], ax         ; Asigna ax a la variable de pausa del juego
+    ret                             ; Retornar
+
+unPauseGame:                        ; Funcion encargada de quitar la pausa del juego
+    mov     ax, 00h                 ; Mueve 0 a ax
+    mov     [gamePause], ax         ; Asigna ax a la variable de pausa del juego
+    ret                             ; Retornar
+
+resetGame:                          ; Funcion encargada de reiniciar el juego
+    call    deleteAlien             ; Llama a la funcion encargada de eliminar el alien
+    call    setLevel1               ; Llama a la funcion encargada de setear los parametros del primer nivel
+    jmp     mainLoop                ; Salta a la funcion de juego principal
 
 exitRoutine:                        ; Funcion encargada de retornar
     ret                             ; Retornar
@@ -832,7 +930,7 @@ checkAlienFlowerColisionAux3:
     mov     [bx], dx                ; Almacena dx en la posicion actual del puntero de indicadores
     mov     [flowersi], dx          ; Almacena dx en la posicion actual del contador de flores
 
-    mov     bx, 02h                 ; Mueve a dx un 2
+    mov     bx, 01h                 ; Mueve a dx un 2
     add     [bulletq], bx           ; Suma dx a la cantidad de balas
 
     ret                             ; Retornar
