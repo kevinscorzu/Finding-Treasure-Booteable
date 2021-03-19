@@ -67,6 +67,11 @@ wallsy times 71 dw 00h              ; Posicion y de las paredes
 wallsb times 71 dw 00h              ; Paredes en pantalla (0 no, 1 si)
 wallsa dw 00h                       ; Cantidad de paredes
 
+texti dw 00h
+textx dw 00h
+texty dw 94h
+testText dw 'Esto es una prueba', 0h
+
 ; Seccion de logica del juego
 
 startGame:                          ; Funcion de inicio del programa
@@ -194,8 +199,10 @@ mainLoop:                           ; Funcion principal del programa
     call    drawAlien               ; Llama a la funcion para dibujar al alien
     call    drawBullet              ; Llama a la funcion para dibujar la bala
     call    drawFlowers             ; Llama a la funcion para dibujar las flores
-    call    drawWalls
+    call    drawWalls               ; Llama a la funcion para dibujar las paredes
     
+    call    drawText
+
     jmp     mainLoop                ; Salta al incio de la funcion
 
 ;  Seccion de dibujo en pantalla
@@ -425,6 +432,44 @@ exitWalls:
     mov     [wallsi], ax            ; Lo almacena en el contador de las paredes
 
     ret                             ; Retornar
+
+drawText:
+    mov     bx, testText
+    mov     cx, [texti]
+    add     bx, cx
+    mov     al, [bx]
+    cmp     al, 0h
+    je      exitDrawText
+    inc     cx
+    mov     [texti], cx
+    jmp     drawTextAux
+
+drawTextAux:
+    push    ax
+
+    mov     ah, 02h
+    mov     dh, [texty]
+    mov     dl, [textx]
+    mov     bh, 00h
+    int     10h
+
+    pop     ax
+    mov     ah, 0ah
+    mov     bh, 00h
+    mov     bl, 0fh
+    mov     cx, 01h
+    int     10h
+
+    mov     ax, 01h
+    add     [textx], ax
+
+    jmp     drawText
+
+exitDrawText:
+    mov     ax, 00h
+    mov     [texti], ax
+    mov     [textx], ax
+    ret
 
 ; Seccion de lectura del teclado
 

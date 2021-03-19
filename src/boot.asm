@@ -1,54 +1,73 @@
-org 0x7C00                           ; Posicion de memoria inicial del bootloader
-%define SECTOR_AMOUNT 05h            ; Cantidad de sectores a leer
+org 0x7C00
+%define SECTOR_AMOUNT 0x5  ;Precompiler defined value for easy changing
+jmp short start
+nop
 
-        jmp short startBootloader    ; Salta al inicio del bootloader
-        nop                          ; Sin operacion
+                                ; BPB
+OEMLabel		db "Example "	; Disk label
+BytesPerSector		dw 512		; Bytes per sector
+SectorsPerCluster	db 1		; Sectors per cluster
+ReservedForBoot		dw 1		; Reserved sectors for boot record
+NumberOfFats		db 2		; Number of copies of the FAT
+RootDirEntries		dw 224		; Number of entries in root dir
+LogicalSectors		dw 2880		; Number of logical sectors
+MediumByte		db 0F0h		    ; Medium descriptor byte
+SectorsPerFat		dw 9		; Sectors per FAT
+SectorsPerTrack		dw 18		; Sectors per track (36/cylinder)
+Sides			dw 2		    ; Number of sides/heads
+HiddenSectors		dd 0		; Number of hidden sectors
+LargeSectors		dd 0		; Number of LBA sectors
+DriveNo			dw 0		    ; Drive No: 0
+Signature		db 41		    ; Drive signature: 41 for floppy
+VolumeID		dd 00000000h	; Volume ID: any number
+VolumeLabel		db "Example    "; Volume Label: any 11 chars
+FileSystem		db "FAT12   "	; File system type: don't change!
+start: 
+; ------------------------------------------------------------------
 
-errorMsg db "Error de carga...", 0h  ; Mensaje de error
+;Initialize Registers
+cli
+xor ax, ax
+mov ds, ax
+mov ss, ax
+mov es, ax
+mov fs, ax
+mov gs, ax
+mov sp, 0x6ef0 ; setup the stack like qemu does
+sti
 
-startBootloader:                     ; Funcion encargada de iniciar el bootloader
-        cli                          ; Desactiva interrupciones
-        xor ax, ax                   ; Vacia ax
-        mov ds, ax                   ; Vacia ds
-        mov ss, ax                   ; Vacia ss
-        mov es, ax                   ; Vacia es
-        mov fs, ax                   ; Vacia fs
-        mov gs, ax                   ; Vacia gs
-        mov sp, 6ef0h                ; Configura el stack
-        sti                          ; Activa interrupciones
-
-        mov ah, 00h                  ; Reinicia disco
-        int 13h                      ; Ejecutar interrupcion
-        jc error                     ; En caso de error, salta a la funcion encargada de escribir el mensaje
-                       
-        mov bx, 8000h                ; Posicion de memoria de ram donde se escribira el juego
-        mov al, SECTOR_AMOUNT        ; Sectores a leer
-        mov ch, 00h                  ; Pista
-        mov dh, 00h                  ; Cabeza
-        mov cl, 02h                  ; Sector
-        mov ah, 02h                  ; Leer del dispositivo
-        int 13h   		     ; Ejecutar interrupcion
-        jc error                     ; En caso de error, salta a la funcion encargada de escribir el mensaje
-        jmp 8000h                    ; Salta al inicio del juego
+                      ;Reset disk system
+mov ah, 0
+int 0x13              ; 0x13 ah=0 dl = drive number
+jc errorpart
+                      ;Read from harddrive and write to RAM
+mov bx, 0x8000        ; bx = address to write the kernel to
+mov al, SECTOR_AMOUNT ; al = amount of sectors to read
+mov ch, 0             ; cylinder/track = 0
+mov dh, 0             ; head           = 0
+mov cl, 2             ; sector         = 2
+mov ah, 2             ; ah = 2: read from drive
+int 0x13   		      ; => ah = status, al = amount read
+jc errorpart
+jmp 0x8000
 
 
-error:                               ; Funcion encargada de escrbir el error
-        mov si, errorMsg             ; Mueve a si el puntero del mensaje de error
-        mov bh, 00h                  ; Pagina
-        mov bl, 07h                  ; Texto
-        mov ah, 0eh                  ; Imprimir char
-        jmp errorAux
+errorpart:            ;if stuff went wrong you end here so let's display a message
+mov si, errormsg
+mov bh, 0x00          ;page 0
+mov bl, 0x07          ;text attribute
+mov ah, 0x0E          ;tells BIOS to print char
+.part:
+lodsb
+sub al, 0
+jz end
+int 0x10              ;interrupt
+jmp .part
+end:
+jmp $
 
-errorAux:
-        lodsb                        ; Carga char
-        sub al, 00h                  ; Verificar si es cero
-        jz end                       ; En caso de que si, salta a fin
-        int 10h                      ; Ejecutar interrupcion
-        jmp errorAux                 ; Salta a errorAux
-        
-end:                                 ; Funcion encargada de salir
-        jmp $                        ; Encicla el programa
-
-times 510-($-$$) db 0                ; Escribe los bytes restantes de ceros
-db 0x55                              ; Parte 1 del numero magico
-db 0xaa                              ; Parte 2 del numero magico
+errormsg db "Failed to load...",0
+times 510-($-$$) db 0
+        ;Begin MBR Signature
+db 0x55 ;byte 511 = 0x55
+db 0xAA ;byte 512 = 0xAA
