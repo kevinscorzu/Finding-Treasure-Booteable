@@ -1,7 +1,7 @@
 org 0x8000                          ; Posicion de memoria inicial del kernel
 bits 16                             ; Cantidad de bits a utilizar
 
-    jmp startGame                   ; Salta al inicio del programa
+    jmp startProgram                ; Salta al inicio del programa
     nop                             ; Sin operacion
 
 ; Seccion de Variables
@@ -15,7 +15,7 @@ time db  00h                        ; Tiempo utilizado para el framerate del jue
 
 level dw 01h                        ; Nivel del juego
 
-gamePause dw 00h                        ; Indicador de juego en pausa (0 no, 1 si)
+gamePause dw 00h                    ; Indicador de juego en pausa (0 no, 1 si)
 
 alienx dw  05h                      ; Posicion x del alien 
 alieny dw  05h                      ; Posicion y del alien
@@ -51,6 +51,11 @@ flowersy1 dw 37h, 73h, 19h, 87h, 7dh, 19h, 41h ; Posicion y de las flores nivel 
 flowersb1 dw 01h, 01h, 01h, 01h, 01h, 01h, 01h ; Flores en pantalla (0 no, 1 si) nivel 1
 flowersa1 dw 0eh                    ; Cantidad de flores nivel 1
 
+flowersx2 dw 4bh, 69h, 73h, 87h, 87h, 2dh, 05h, 4bh, 69h, 19h, 7dh, 2dh, 4bh, 19h ; Posicion x de las flores nivel 2
+flowersy2 dw 0fh, 0fh, 0fh, 0fh, 23h, 41h, 55h, 5fh, 5fh, 73h, 73h, 7dh, 7dh, 91h ; Posicion y de las flores nivel 2
+flowersb2 dw 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h, 01h ; Flores en pantalla (0 no, 1 si) nivel 2
+flowersa2 dw 1ch                    ; Cantidad de flores nivel 2
+
 flowersx times 14 dw 00h            ; Posicion x de las flores
 flowersy times 14 dw 00h            ; Posicion y de las flores
 flowersb times 14 dw 00h            ; Flores en pantalla (0 no, 1 si)
@@ -69,6 +74,11 @@ wallsy1 dw 23h, 23h, 23h, 2dh, 2dh, 2dh, 2dh, 2dh, 37h, 37h, 37h, 37h, 41h, 41h,
 wallsb1 dw 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h ; Paredes en pantalla (0 no, 1 celeste claro, 2 celeste oscuro) nivel 1
 wallsa1 dw 38h                      ; Cantidad de paredes nivel 1
 
+wallsx2 dw 55h, 55h, 55h, 73h, 7dh, 87h, 91h, 19h, 23h, 2dh, 37h, 41h, 4bh, 55h, 5fh, 69h, 19h, 23h, 2dh, 37h, 41h, 4bh, 55h, 5fh, 69h, 23h, 5fh, 23h, 4bh, 55h, 5fh, 69h, 73h, 7dh, 23h, 5fh, 23h, 37h, 5fh, 05h, 0fh, 19h, 23h, 2dh, 37h, 5fh, 0fh, 37h, 5fh, 0fh, 37h, 5fh, 0fh, 37h, 5fh, 0fh, 37h, 41h, 4bh, 55h, 5fh, 69h, 73h, 7dh, 87h, 91h, 0fh, 37h, 41h, 4bh, 55h ; Posicion x de las paredes nivel 2
+wallsy2 dw 05h, 0fh, 19h, 19h, 19h, 19h, 19h, 23h, 23h, 23h, 23h, 23h, 23h, 23h, 23h, 23h, 2dh, 2dh, 2dh, 2dh, 2dh, 2dh, 2dh, 2dh, 2dh, 37h, 37h, 41h, 41h, 41h, 41h, 41h, 41h, 41h, 4bh, 4bh, 55h, 55h, 55h, 5fh, 5fh, 5fh, 5fh, 5fh, 5fh, 5fh, 69h, 69h, 69h, 73h, 73h, 73h, 7dh, 7dh, 7dh, 87h, 87h, 87h, 87h, 87h, 87h, 87h, 87h, 87h, 87h, 87h, 91h, 91h, 91h, 91h, 91h ; Posicion y de las paredes nivel 2
+wallsb2 dw 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h, 02h ; Paredes en pantalla (0 no, 1 celeste claro, 2 celeste oscuro) nivel 2
+wallsa2 dw 8eh                      ; Cantidad de paredes nivel 2
+
 wallsx times 71 dw 00h              ; Posicion x de las paredes
 wallsy times 71 dw 00h              ; Posicion y de las paredes
 wallsb times 71 dw 00h              ; Paredes en pantalla (0 no, 1 si)
@@ -81,10 +91,79 @@ testText dw 'Esto es una prueba', 0h
 
 ; Seccion de logica del juego
 
-startGame:                          ; Funcion de inicio del programa
+startProgram:                       ; Funcion de inicio del programa
     call    initializeDisplay       ; Llama a la funcion para inicializar el display
-    call    setLevel1
-    jmp     mainLoop                ; Salta a la funcion principal del programa
+    call    clearScreen             ; Llama a la funcion para limpiar la pantalla
+    jmp     menuLoop                ; Llama a la funcion del ciclo del menu
+
+menuLoop:                           ; Ciclo principal del menu
+    mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
+    int     1ah                     ; Ejecutar interrupcion
+
+    cmp     dl, [time]              ; Compara el tiempo actual con el tiempo anterior
+    je      menuLoop                ; Si son iguales vuelve a calcular el ciclo
+    mov     [time], dl              ; Sino, almacena el nuevo tiempo
+  
+    call    checkPlayerMenuAction   ; Llama la funcion encargada de verificar teclas en el menu principal
+
+    ;INSERTE AQUI LLAMADA DE ESCRITURA DEL MENU PRINCIPAL  
+
+    jmp     menuLoop                ; Salta al incio de la funcion
+
+startGame:                          ; Funcion de inicio del juego
+    call    setLevel1               ; Llama a la funcion para colocar los parametros del primer nivel
+    call    clearScreen             ; Llama a la funcion para limpiar la pantalla
+    jmp     gameLoop                ; Salta a la funcion principal del programa
+
+advanceGame:                        ; Funcion encargada de avanzar el juego
+    call    clearBullet             ; Llama a la funcion encargada de quitar la bala de la pantalla
+    mov     ax, 01h                 ; Mueve 1 a ax
+    cmp     [level], ax             ; Verifica si se gano el nivel 1 o 2
+    je      advanceGameAux          ; Si fue el 1, avanza al 2
+    jmp     endGame                 ; Si fue el 2, termina el juego
+
+advanceGameAux:
+    call    setLevel2               ; Llama a la funcion para colocar los parametros del segundo nivel
+    call    clearScreen             ; Llama a la funcion para limpiar la pantalla
+    jmp     gameLoop                ; Salta a la funcion principal del programa
+
+gameLoop:                           ; Ciclo principal del juego
+    mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
+    int     1ah                     ; Ejecutar interrupcion
+
+    cmp     dl, [time]              ; Compara el tiempo actual con el tiempo anterior
+    je      gameLoop                ; Si son iguales vuelve a calcular el ciclo
+    mov     [time], dl              ; Sino, almacena el nuevo tiempo
+
+    call    checkPlayerAction       ; Llama a la funcion para mover el alien
+
+    call    drawAlien               ; Llama a la funcion para dibujar al alien
+    call    drawBullet              ; Llama a la funcion para dibujar la bala
+    call    drawFlowers             ; Llama a la funcion para dibujar las flores
+    call    drawWalls               ; Llama a la funcion para dibujar las paredes
+    call    drawBoss                ; Llama a la funcion para dibujar al jefe
+
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    jmp     gameLoop                ; Salta al incio de la funcion
+
+endGame:                            ; Funcion de fin del juego
+    call    clearScreen             ; Llama a la funcion para limpiar la pantalla
+    jmp     endLoop                 ; Llama a la funcion del ciclo de fin del juego
+
+endLoop:                            ; Ciclo principal del fin del juego
+    mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
+    int     1ah                     ; Ejecutar interrupcion
+
+    cmp     dl, [time]              ; Compara el tiempo actual con el tiempo anterior
+    je      endLoop                 ; Si son iguales vuelve a calcular el ciclo
+    mov     [time], dl              ; Sino, almacena el nuevo tiempo
+  
+    call    checkPlayerEndAction   ; Llama la funcion encargada de verificar teclas en el menu principal
+
+    ;INSERTE AQUI LLAMADA DE ESCRITURA DEL FIN DEL JUEGO 
+
+    jmp     endLoop                 ; Salta al incio de la funcion
 
 initializeDisplay:                  ; Funcion requerida para inicializar el display
     mov     ah, 00h                 ; Activar el modo video
@@ -93,6 +172,9 @@ initializeDisplay:                  ; Funcion requerida para inicializar el disp
     ret                             ; Retornar
 
 setLevel1:                          ; Funcion encargada de iniciar el primer nivel del juego
+    mov     ax, 01h                 ; Mueve 1 a ax
+    mov     [level], ax             ; Mueve ax al nivel actual
+
     mov     ax, 05h                 ; Mueve 5 a ax
     mov     [alienx], ax            ; Mueve el 5 a la posicion inicial x del alien
     mov     [alieny], ax            ; Mueve el 5 a la posicion inicial y del alien
@@ -206,34 +288,146 @@ setLevel1Aux11:
     add     cx, 2                   ; Suma 2 a cx
     jmp     setLevel1Aux11          ; Salta al inicio de esta funcion
 
-mainLoop:                           ; Funcion principal del programa
-    mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
-    int     1ah                     ; Ejecutar interrupcion
+setLevel2:                          ; Funcion encargada de iniciar el segundo nivel del juego
+    mov     ax, 02h                 ; Mueve 2 a ax
+    mov     [level], ax             ; Mueve ax al nivel actual
 
-    cmp     dl, [time]              ; Compara el tiempo actual con el tiempo anterior
-    je      mainLoop                ; Si son iguales vuelve a calcular el ciclo
-    mov     [time], dl              ; Sino, almacena el nuevo tiempo
+    mov     ax, 05h                 ; Mueve 5 a ax
+    mov     [alienx], ax            ; Mueve el 5 a la posicion inicial x del alien
+    mov     [alieny], ax            ; Mueve el 5 a la posicion inicial y del alien
+    mov     [talienx], ax           ; Mueve el 5 a la posicion inicial temporal x del alien
+    mov     [talieny], ax           ; Mueve el 5 a la posicion inicial temporal y del alien
 
-    call    checkPause              ; Llama a la funcion para mover el alien
+    mov     ax, 91h                 ; Mueve un 145 a ax
+    mov     [bossx], ax             ; Mueve el 145 a la posicion inicial x del jefe
+    mov     [bossy], ax             ; Mueve el 145 a la posicion inicial y del jefe
 
-    call    drawAlien               ; Llama a la funcion para dibujar al alien
-    call    drawBullet              ; Llama a la funcion para dibujar la bala
-    call    drawFlowers             ; Llama a la funcion para dibujar las flores
-    call    drawWalls               ; Llama a la funcion para dibujar las paredes
-    call    drawBoss                ; Llama a la funcion para dibujar al jefe
+    mov     ax, 00h                 ; Mueve 0 a ax
+    mov     [gamePause], ax         ; Mueve el contenido de ax a la variable de pausa
+    mov     [bulletq], ax           ; Mueve ax a la cantidad de balas del alien
 
-    call    drawText                ; Llama a la funcion encargada de escribir texto
+    mov     ax, [wallsa2]           ; Mueve a ax cantidad de paredes de nivel 2
+    mov     [wallsa], ax            ; Almacena la cantidad de paredes
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel2Aux            ; Salta a la funcion auxiliar
 
-    jmp     mainLoop                ; Salta al incio de la funcion
+setLevel2Aux:
+    cmp     cx, [wallsa]            ; Compara el contador con la cantidad de paredes
+    je      setLevel2Aux2           ; Si son iguales salta a la funcion auxiliar 2
+    mov     bx, wallsx2             ; Mueve el puntero de posiciones x de paredes del nivel 2
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la pared actual a ax
+    mov     bx, wallsx              ; Mueve el puntero de posiciones x de paredes
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel2Aux            ; Salta al inicio de esta funcion
+
+setLevel2Aux2:
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel2Aux3           ; Salta a la funcion auxiliar 3
+
+setLevel2Aux3:
+    cmp     cx, [wallsa]            ; Compara el contador con la cantidad de paredes
+    je      setLevel2Aux4           ; Si son iguales salta a la funcion auxiliar 4
+    mov     bx, wallsy2             ; Mueve el puntero de posiciones y de paredes del nivel 2
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la pared actual a ax
+    mov     bx, wallsy              ; Mueve el puntero de posiciones y de paredes
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel2Aux3           ; Salta al inicio de esta funcion
+
+setLevel2Aux4:
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel2Aux5           ; Salta a la funcion auxiliar 5
+
+setLevel2Aux5:
+    cmp     cx, [wallsa]            ; Compara el contador con la cantidad de paredes
+    je      setLevel2Aux6           ; Si son iguales salta a la funcion auxiliar 6
+    mov     bx, wallsb2             ; Mueve el puntero de paredes del nivel 2
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la pared actual a ax
+    mov     bx, wallsb              ; Mueve el puntero de posiciones de paredes
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel2Aux5           ; Salta al inicio de esta funcion
+
+setLevel2Aux6:
+    mov     ax, [flowersa2]         ; Mueve a ax cantidad de flores de nivel 2
+    mov     [flowersa], ax          ; Almacena la cantidad de flores
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel2Aux7           ; Salta a la funcion auxiliar 7
+
+setLevel2Aux7:
+    cmp     cx, [flowersa]          ; Compara el contador con la cantidad de flores
+    je      setLevel2Aux8           ; Si son iguales salta a la funcion auxiliar 8
+    mov     bx, flowersx2           ; Mueve el puntero de posiciones x de flores del nivel 2
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la flor actual a ax
+    mov     bx, flowersx            ; Mueve el puntero de posiciones x de flores
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel2Aux7           ; Salta al inicio de esta funcion
+
+setLevel2Aux8:
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel2Aux9           ; Salta a la funcion auxiliar 9
+
+setLevel2Aux9:
+    cmp     cx, [flowersa]          ; Compara el contador con la cantidad de flores
+    je      setLevel2Aux10          ; Si son iguales salta a la funcion auxiliar 10
+    mov     bx, flowersy2           ; Mueve el puntero de posiciones y de flores del nivel 2
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la flor actual a ax
+    mov     bx, flowersy            ; Mueve el puntero de posiciones y de flores
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel2Aux9           ; Salta al inicio de esta funcion
+
+setLevel2Aux10:
+    mov     cx, 00h                 ; Mueve 0 a cx
+    jmp     setLevel2Aux11          ; Salta a la funcion auxiliar 11
+
+setLevel2Aux11:
+    cmp     cx, [flowersa]          ; Compara el contador con la cantidad de flores
+    je      exitRoutine             ; Si son iguales salta a la funcion de salida
+    mov     bx, flowersb2           ; Mueve el puntero de flores del nivel 2
+    add     bx, cx                  ; Suma cx a bx
+    mov     ax, [bx]                ; Mueve la posicion de la flor actual a ax
+    mov     bx, flowersb            ; Mueve el puntero de posiciones de flores
+    add     bx, cx                  ; Suma cx a bx
+    mov     [bx], ax                ; Almacena ax en el puntero de bx
+    add     cx, 2                   ; Suma 2 a cx
+    jmp     setLevel2Aux11          ; Salta al inicio de esta funcion
 
 ;  Seccion de dibujo en pantalla
 
-clearScreen:                        ; Funcion encargada de limpiar la pantalla
-    mov     ah, 0bh                 ; Configuracion 
-    mov     bh, 00h                 ; Elije el fondo
-    mov     bl, 00h                 ; Color negro
+clearScreen:                        ; Funcion encargada de limpiar la pantala
+    mov     cx, 00h                 ; Posicion inicial x
+    mov     dx, 00h                 ; Posicion inicial y
+    jmp     clearScreenAux          ; Salta a la funcion auxliar
+
+clearScreenAux:
+    mov     ah, 0ch                 ; Dibuja pixel
+    mov     al, 00h                 ; Color negro
+    mov     bh, 00h                 ; Pagina
     int     10h                     ; Ejecutar interrupcion
-    ret                             ; Retornar
+    inc     cx                      ; Suma uno a cx
+    cmp     cx, [width]             ; Compara cx con el ancho la pantalla
+    jng     clearScreenAux          ; Si cx no es mayor que el ancho de la pantalla, salta a dibujar en la siguiente columna
+    jmp     clearScreenAux2         ; Sino, salta a la funcion auxiliar 2
+
+clearScreenAux2:                  
+    mov     cx, 00h                 ; Reinicia las columnas
+    inc     dx                      ; Suma uno a dx
+    cmp     dx, [height]            ; Compara dx con la altura de la pantalla
+    jng     clearScreenAux          ; Si dx no es mayor que el ancho de la pantalla, salta a dibujar la siguiente fila
+    ret                             ; Sino, Retornar
 
 deleteAlien:                        ; Funcion encargadad de eliminar el alien en pantalla
     mov     al, 00h                 ; Mueve el color negro a al
@@ -520,11 +714,11 @@ exitDrawText:
 
 ; Seccion de lectura del teclado
 
-checkPause:
-    mov     ax, 00h
-    cmp     ax, [gamePause]
-    je      makeMovements
-    jmp     checkPauseKey
+checkPlayerAction:                  ; Funcion encargada de verificar si el juego esta en pausa
+    mov     ax, 00h                 ; Mueve un 0 a ax
+    cmp     ax, [gamePause]         ; Verifica si la variable de pausa es 0
+    je      makeMovements           ; En caso de que si, el juego no esta en pausa y salta a realizar movimientos
+    jmp     checkPlayerPauseAction  ; Sino, el juego esta en pausa y salta a detectar la tecla para quitar la pausa
 
 makeMovements:                      ; Funcion encargada de realizar movimientos en pantalla y deteccion de teclas
     call    moveBullet              ; Llama a la funcion para mover la bala
@@ -565,7 +759,33 @@ makeMovements:                      ; Funcion encargada de realizar movimientos 
 
     ret                             ; Sino, Retornar
 
-checkPauseKey:                      ; Funcion encargada de verificar el fin de la pausa
+checkPlayerMenuAction:              ; Funcion encargada de verificar la tecla presionada en el menu
+    mov     ah, 01h                 ; Consigue el estado del teclado
+    int     16h                     ; Ejecutar interrupcion
+    jz      exitRoutine             ; Si no se esta presionando nada, salta a salir
+    
+    mov     ah, 00h                 ; Lectura de tecla
+    int     16h                     ; Ejecutar interrupcion
+
+    cmp     ah, 39h                 ; Si la tecla presionada es Espacio
+    je      startGame               ; Inicia el juego
+
+    ret
+
+checkPlayerEndAction:               ; Funcion encargada de verificar la tecla presionada en el fin del juego
+    mov     ah, 01h                 ; Consigue el estado del teclado
+    int     16h                     ; Ejecutar interrupcion
+    jz      exitRoutine             ; Si no se esta presionando nada, salta a salir
+    
+    mov     ah, 00h                 ; Lectura de tecla
+    int     16h                     ; Ejecutar interrupcion
+
+    cmp     ah, 39h                 ; Si la tecla presionada es Espacio
+    je      startProgram            ; Vuelve a la pantalla de inicio del juego
+
+    ret
+
+checkPlayerPauseAction:             ; Funcion encargada de verificar el fin de la pausa
     mov     ah, 01h                 ; Consigue el estado del teclado
     int     16h                     ; Ejecutar interrupcion
     jz      exitRoutine             ; Si no se esta presionando nada, salta a salir
@@ -592,9 +812,9 @@ unPauseGame:                        ; Funcion encargada de quitar la pausa del j
     ret                             ; Retornar
 
 resetGame:                          ; Funcion encargada de reiniciar el juego
-    call    deleteAlien             ; Llama a la funcion encargada de eliminar el alien
+    call    clearScreen             ; Llama a la funcion encargada de eliminar el alien
     call    setLevel1               ; Llama a la funcion encargada de setear los parametros del primer nivel
-    jmp     mainLoop                ; Salta a la funcion de juego principal
+    jmp     gameLoop                ; Salta a la funcion de juego principal
 
 exitRoutine:                        ; Funcion encargada de retornar
     ret                             ; Retornar
@@ -721,8 +941,8 @@ checkBulletColision:                ; Funcion encargada de verificar las colisio
     mov     bh, 00h                 ; Pagina
     int     10h                     ; Ejecutar interrupcion
 
-    ;cmp     al, [boss]             ; Compara el pixel leido con el color del jefe
-    ;je      checkAlienFlowerColision ; En caso de que se cumpla, salta a la funcion de colision de flores
+    cmp     al, [bossc]             ; Compara el pixel leido con el color del jefe
+    je      advanceGame             ; En caso de que se cumpla, salta a la funcion para avanzar de juego
     cmp     al, [wallsc1]           ; Compara el pixel leido con el color 1 de la pared
     je      checkBulletWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
     cmp     al, [wallsc2]           ; Compara el pixel leido con el color 1 de la pared
@@ -889,8 +1109,10 @@ checkAlienColision:                 ; Funcion encargada de verificar las colisio
     je      checkAlienFlowerColision ; En caso de que se cumpla, salta a la funcion de colision de flores
     cmp     al, [wallsc1]           ; Compara el pixel leido con el color 1 de la pared
     je      checkAlienWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
-    cmp     al, [wallsc2]           ; Compara el pixel leido con el color 1 de la pared
+    cmp     al, [wallsc2]           ; Compara el pixel leido con el color 2 de la pared
     je      checkAlienWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
+    cmp     al, [bossc]             ; Compara el pixel leido con el color del jefe
+    je      resetGame               ; En caso de que se cumpla, reinica el juego
 
     pop     ax                      ; Restaura ax del stack
     ret                             ; Retornar
@@ -980,4 +1202,4 @@ checkAlienWallColisionAux4:
 
     jmp     checkAlienWallColisionAux ; Salta a la primer funcion
 
-times   (512*5)-($-$$) db 0         ; Tamaño del codigo
+times   (512*7)-($-$$) db 0         ; Tamaño del codigo
