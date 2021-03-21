@@ -88,6 +88,7 @@ texti dw 00h
 textx dw 00h
 texty dw 94h
 testText dw 'Esto es una prueba', 0h
+testText2 dw 'Esto es una prueba2', 0h
 
 ; Seccion de logica del juego
 
@@ -143,7 +144,16 @@ gameLoop:                           ; Ciclo principal del juego
     call    drawWalls               ; Llama a la funcion para dibujar las paredes
     call    drawBoss                ; Llama a la funcion para dibujar al jefe
 
+    mov     bx, testText
+    mov     dh, 93h
+    mov     dl, 00h
     call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, testText2
+    inc     dh
+    mov     dl, 00h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
 
     jmp     gameLoop                ; Salta al incio de la funcion
 
@@ -162,6 +172,10 @@ endLoop:                            ; Ciclo principal del fin del juego
     call    checkPlayerEndAction   ; Llama la funcion encargada de verificar teclas en el menu principal
 
     ;INSERTE AQUI LLAMADA DE ESCRITURA DEL FIN DEL JUEGO 
+    mov     bx, testText2
+    inc     dh
+    mov     dl, 00h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
 
     jmp     endLoop                 ; Salta al incio de la funcion
 
@@ -674,42 +688,38 @@ exitWalls:
 
     ret                             ; Retornar
 
+;------------------------------------------
+; void drawText(String text)
+; bx text
+; cx [y,x]
 drawText:
-    mov     bx, testText
-    mov     cx, [texti]
-    add     bx, cx
-    mov     al, [bx]
-    cmp     al, 0h
-    je      exitDrawText
-    inc     cx
-    mov     [texti], cx
-    jmp     drawTextAux
+    cmp byte [bx],0
+    jz finishDraw
+    jmp drawChar
 
-drawTextAux:
-    push    ax
-
+drawChar:
+    push bx
     mov     ah, 02h
-    mov     dh, [texty]
-    mov     dl, [textx]
+    ;mov     dh, [texty]
+    ;mov     dl, [textx]
     mov     bh, 00h
     int     10h
+    pop bx
 
-    pop     ax
+    push bx
+    mov     al, [bx]
     mov     ah, 0ah
     mov     bh, 00h
     mov     bl, 0fh
     mov     cx, 01h
     int     10h
+    pop bx
 
-    mov     ax, 01h
-    add     [textx], ax
+    inc bx
+    inc dl
+    jmp drawText
 
-    jmp     drawText
-
-exitDrawText:
-    mov     ax, 00h
-    mov     [texti], ax
-    mov     [textx], ax
+finishDraw:
     ret
 
 ; Seccion de lectura del teclado
