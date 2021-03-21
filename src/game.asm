@@ -15,7 +15,12 @@ time db  00h                        ; Tiempo utilizado para el framerate del jue
 
 level dw 01h                        ; Nivel del juego
 
+random1 dw 00h                      ; Numero aleatorio 1
+random2 dw 00h                      ; Numero aleatorio 2
+
 gamePause dw 00h                    ; Indicador de juego en pausa (0 no, 1 si)
+
+cyclesSinceLastBomb dw 00h
 
 alienx dw  05h                      ; Posicion x del alien 
 alieny dw  05h                      ; Posicion y del alien
@@ -84,6 +89,17 @@ wallsy times 71 dw 00h              ; Posicion y de las paredes
 wallsb times 71 dw 00h              ; Paredes en pantalla (0 no, 1 si)
 wallsa dw 00h                       ; Cantidad de paredes
 
+bombsc dw 07h                       ; Color de las bombas
+bombss dw 05h                       ; Altura y ancho de las bombas
+bombsi dw 00h                       ; Indice para contar las bombas
+bombx dw 00h                        ; Posicion x de la bomba actual
+bomby dw 00h                        ; Posicion y de la bomba actual
+
+bombsx times 30 dw 00h              ; Posicion x de las bombas
+bombsy times 30 dw 00h              ; Posicion y de las bombas
+bombsb times 30 dw 00h              ; Bombas en pantalla (0 no, 1 si)
+bombsa dw 00h                       ; Cantidad de bombas
+
 texti dw 00h
 textx dw 00h
 texty dw 94h
@@ -117,6 +133,7 @@ startGame:                          ; Funcion de inicio del juego
 
 advanceGame:                        ; Funcion encargada de avanzar el juego
     call    clearBullet             ; Llama a la funcion encargada de quitar la bala de la pantalla
+    call    clearBombs              ; Llama a la funcion para quitar las bombas en pantalla
     mov     ax, 01h                 ; Mueve 1 a ax
     cmp     [level], ax             ; Verifica si se gano el nivel 1 o 2
     je      advanceGameAux          ; Si fue el 1, avanza al 2
@@ -142,6 +159,7 @@ gameLoop:                           ; Ciclo principal del juego
     call    drawFlowers             ; Llama a la funcion para dibujar las flores
     call    drawWalls               ; Llama a la funcion para dibujar las paredes
     call    drawBoss                ; Llama a la funcion para dibujar al jefe
+    call    drawBombs
 
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
@@ -404,6 +422,14 @@ setLevel2Aux11:
     mov     [bx], ax                ; Almacena ax en el puntero de bx
     add     cx, 2                   ; Suma 2 a cx
     jmp     setLevel2Aux11          ; Salta al inicio de esta funcion
+
+generateRandomNumber:               ; Funcion encargada de generar un numero
+    mov     ah, 00h                 ; Activa obtener el tiempo de la computadora
+    int     1ah                     ; Ejecutar interrupcion
+    mov     ax, 0fh                 ; Mueve un 15 a ax
+    and     ax, dx                  ; Hace un and entre el 15 y dl
+
+    ret                             ; Retornar
 
 ;  Seccion de dibujo en pantalla
 
@@ -674,6 +700,72 @@ exitWalls:
 
     ret                             ; Retornar
 
+drawBombs:                          ; Funcion encargada de dibujar las bombas
+    mov     cx, [bombsi]            ; Mueve el contador de las bombas a cx
+    cmp     cx, [bombsa]            ; Compara el contador con la cantidad de bombas
+    je      exitBombs               ; Si son iguales salta a la funcion de salida
+
+    mov     bx, bombsb              ; Mueve el puntero del primer elemento de la lista que indica si una bomba esta activa o no
+    add     bx, cx                  ; Suma el contador al puntero
+
+    mov     ax, [bx]                ; Obtiene la bomba actual
+    cmp     ax, 00h                 ; Compara la bomba con 0 para ver si tiene que ser dibujada
+    je      drawBombsAux            ; En caso de que no salta a la funcion auxiliar 3
+    jmp     drawBombsAux2           ; Sino, salta a la funcion auxiliar 1
+
+drawBombsAux:
+    mov     cx, [bombsi]            ; Mueve el contador de las bombas a cx
+    add     cx, 02h                 ; Suma 2 a cx
+    mov     [bombsi], cx            ; Guarda el nuevo contador
+
+    jmp     drawBombs               ; Salta a la funcion de dibujo principal
+
+drawBombsAux2:
+    mov     ax, [bombsi]            ; Mueve el contador de las bombas a ax
+
+    mov     bx, bombsx              ; Mueve el puntero del primer elemento de la lista de las posiciones x de las bombas
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion x de la bomba actual
+    mov     [bombx], ax             ; La almacena en la variable que contiene la posicion x de la bomba actual
+    mov     cx, [bombx]             ; Mueve la posicion inicial x a cx
+
+    mov     ax, [bombsi]            ; Mueve el contador de las bombas a ax
+
+    mov     bx, bombsy              ; Mueve el puntero del primer elemento de la lista de las posiciones y de las bombas
+    add     bx, ax                  ; Suma el contador al puntero
+    mov     ax, [bx]                ; Obtiene la posicion y de la bomba actual
+    mov     [bomby], ax             ; La almacena en la variable que contiene la posicion y de la bomba actual
+    mov     dx, [bomby]             ; Mueve la posicion inicial y a dx
+
+    jmp     drawBombsAux3           ; Salta a la funcion auxliar
+
+drawBombsAux3:
+    mov     ah, 0ch                 ; Dibuja pixel
+    mov     al, [bombsc]            ; Color gris
+    mov     bh, 00h                 ; Pagina
+    int     10h                     ; Ejecutar interrupcion
+    inc     cx                      ; Suma uno a cx
+    mov     ax, cx                  ; Mueve cx a ax
+    sub     ax, [bombx]             ; Resta el ancho de la bomba a la columna actual
+    cmp     ax, [bombss]            ; Compara resultado de la resta con el ancho
+    jng     drawBombsAux3           ; Si ax no es mayor que el ancho de la bomba, salta a dibujar en la siguiente columna
+    jmp     drawBombsAux4           ; Sino, salta a la funcion auxiliar 2
+
+drawBombsAux4:                  
+    mov     cx, [bombx]             ; Reinicia las columnas
+    inc     dx                      ; Suma uno a dx
+    mov     ax, dx                  ; Mueve dx a ax
+    sub     ax, [bomby]             ; Resta el alto de la bomba a la fila actual
+    cmp     ax, [bombss]            ; Compara resultado de la resta con la altura
+    jng     drawBombsAux3           ; Si ax no es mayor que el ancho de la bomba, salta a dibujar la siguiente fila
+    jmp     drawBombsAux            ; Sino, salta a la funcion auxliar 3
+
+exitBombs:
+    mov     ax, 00h                 ; Mueve un 0 a ax
+    mov     [bombsi], ax            ; Lo almacena en el contador de las bombas
+
+    ret                             ; Retornar
+
 drawText:
     mov     bx, testText
     mov     cx, [texti]
@@ -722,6 +814,7 @@ checkPlayerAction:                  ; Funcion encargada de verificar si el juego
 
 makeMovements:                      ; Funcion encargada de realizar movimientos en pantalla y deteccion de teclas
     call    moveBullet              ; Llama a la funcion para mover la bala
+    call    spawnBomb
 
     mov     ah, 01h                 ; Consigue el estado del teclado
     int     16h                     ; Ejecutar interrupcion
@@ -813,6 +906,8 @@ unPauseGame:                        ; Funcion encargada de quitar la pausa del j
 
 resetGame:                          ; Funcion encargada de reiniciar el juego
     call    clearScreen             ; Llama a la funcion encargada de eliminar el alien
+    call    clearBombs              ; Llama a la funcion para quitar las bombas en pantalla
+    call    clearBullet             ; Llama a la funcion para quitar las balas
     call    setLevel1               ; Llama a la funcion encargada de setear los parametros del primer nivel
     jmp     gameLoop                ; Salta a la funcion de juego principal
 
@@ -820,6 +915,122 @@ exitRoutine:                        ; Funcion encargada de retornar
     ret                             ; Retornar
 
 ; Seccion de movimiento, logica y colisiones
+
+clearBombs:                         ; Funcion encargada de quitar las bombas en pantalla
+    mov     ax, [bombsi]            ; Mueve a ax el contador de bombas
+    cmp     ax, [bombsa]            ; Compara el contador de bombas con la cantidad de bombas
+    je      clearBombsAux           ; Si son iguales salta a la funcion auxiliar
+
+    mov     bx, bombsb              ; Mueve el puntero del indicador de bombas a bx
+    add     bx, ax                  ; Suma el puntero el contador
+    mov     cx, 00h                 ; Mueve a ax la bomba actual
+    mov     [bx], cx                ; Mueve cx al contenido de bx
+    mov     cx, 02h                 ; Mueve un 2 a cx
+    add     [bombsi], cx            ; Suma cx al contador de bombas
+    jmp     clearBombs              ; Salta al inicio de la funcion
+
+clearBombsAux:
+    mov     ax, 00h                 ; Mueve 0 a ax
+    mov     [bombsa], ax            ; Limpia la cantidad de bombas
+    mov     [bombsi], ax            ; Limpia el contador de bombas
+    ret                             ; Retornar
+
+spawnBomb:                          ; Funcion encargada de generar bombas
+    mov     ax, [bombsa]            ; Mueve la cantidad de bombas a ax
+    cmp     ax, 1eh                 ; Compara la cantidad de bombas con 1e (30, el doble de las bombas actual)
+    je      exitRoutine             ; Salta a la funcion de salida
+    jmp     spawnBombAux            ; Salta a la funcion auxiliar
+
+spawnBombAux:
+    mov     ax, [cyclesSinceLastBomb] ; Mueve a ax la cantidad de ciclos desde que aparecio la ultima bomba
+    cmp     ax, 3ch                 ; Compara ax con 60
+    je      spawnBombAux2           ; Si ya pasaron 60 ciclos, salta a la funcion auxilar 2
+    inc     ax                      ; Incrementa ax
+    mov     [cyclesSinceLastBomb], ax ; Almacena la nueva cantidad de ciclos
+    ret                             ; Retornar
+
+spawnBombAux2:
+    call    generateRandomNumber    ; Llama a la funcion para generar un numero aleatorio
+    cmp     ax, 0fh                 ; Compara el numero con 15
+    jge     exitRoutine             ; Si es mayor o igual, salta a la funcion de salida
+    mov     [random1], ax           ; Si es menor, almacena el numero en el aleatorio 1
+    jmp     spawnBombAux3           ; Salta a la funcion auxiliar 3
+
+spawnBombAux3:
+    mov     ax, [alieny]            ; Mueve a ax la posicion y del alien
+    add     ax, 0ah                 ; Suma 10 a ax
+    cmp     ax, 9bh                 ; Compara ax con 155
+    jl      spawnBombAux4           ; Si es menor, salta a la funcion auxiliar 4
+    sub     ax, 14h                 ; Sino, resta 20
+    jmp     spawnBombAux4           ; salta a la funcion auxiliar 4
+
+spawnBombAux4:
+    mov     [random2], ax           ; Mueve ax al numero aleatorio 2
+
+    mov     ax, [random1]           ; Mueve el numero aleatorio 1 a ax
+    mov     dx, 00h                 ; Mueve 0 a dx
+    mov     cx, 0ah                 ; Mueve 10 a cx
+    mul     cx                      ; Multiplica ax * cx
+    add     ax, 05h                 ; Suma 5 a ax
+    mov     [random1], ax           ; Mueve ax al numero aleatorio 1
+
+    jmp     spawnBombAux5           ; Salta a la funcion auxiliar 5
+
+spawnBombAux5:
+    mov     cx, [random1]           ; Mueve a cx el numero aleatorio 1
+    mov     dx, [random2]           ; Mueve a cx el numero aleatorio 2
+    mov     ah, 0dh                 ; Lee pixel
+    mov     bh, 00h                 ; Pagina
+    int     10h                     ; Ejecutar interrupcion
+
+    cmp     al, 00h                 ; Compara el pixel leido con el color negro
+    je      spawnBombAux6           ; En caso de que se cumpla, salta a la funcion auxiliar 6
+
+    ret                             ; Sino, retornar
+
+spawnBombAux6:
+    mov     ax, 02h                 ; Mueve un 2 a ax
+    add     [bombsa], ax            ; Suma ax a la cantidad de bombas
+
+    mov     ax, 00h                 ; Mueve un 0 a ax
+    mov     [cyclesSinceLastBomb], ax ; Almacena ax en la cantidad de ciclos
+
+    jmp     spawnBombAux7           ; Salta a la funcion auxiliar 7
+
+spawnBombAux7:
+    mov     bx, bombsb              ; Mueve el puntero del indicador de bombas a bx
+    mov     ax, [bombsi]            ; Mueve a ax el contador de bombas
+    add     bx, ax                  ; Suma el puntero el contador
+    mov     ax, [bx]                ; Mueve a ax la bomba actual
+    cmp     ax, 00h                 ; Compara ax con 0
+    je      spawnBombAux8           ; En caso de serlo, salta a la funcion auxiliar 8
+    mov     ax, 02h                 ; Mueve un 2 a ax
+    add     [bombsi], ax            ; Suma ax al contador
+    jmp     spawnBombAux7           ; Salta a la funcion auxiliar 7
+
+spawnBombAux8:
+    mov     bx, bombsx              ; Mueve el puntero de las posiciones x de las bombas
+    mov     ax, [bombsi]            ; Mueve el contador de bombas a ax
+
+    add     bx, ax                  ; Suma a bx ax
+    mov     cx, [random1]           ; Mueve el numero aleatorio 1 a cx
+    mov     [bx], cx                ; Mueve al contenido de bx el numero aleatorio 1
+
+    mov     bx, bombsy              ; Mueve el puntero de las posiciones y de las bombas
+    
+    add     bx, ax                  ; Suma a bx ax
+    mov     cx, [random2]           ; Mueve el numero aleatorio 2 a cx
+    mov     [bx], cx                ; Mueve al contenido de bx el numero aleatorio 2
+
+    mov     bx, bombsb              ; Mueve el puntero del indicador de bombas a bx
+    add     bx, ax                  ; Suma a bx ax
+    mov     ax, 01h                 ; Mueve 1 a ax
+    mov     [bx], ax                ; Mueve al contenido de bx ax
+
+    mov     ax, 00h                 ; Mueve 0 a ax
+    mov     [bombsi], ax            ; Reinicia el contador de bombas
+
+    ret                             ; Retornar
 
 shootBullet:                        ; Funcion encargada de activar la bala
     mov     ax, 00h                 ; Mueve 0 a ax
@@ -1113,6 +1324,8 @@ checkAlienColision:                 ; Funcion encargada de verificar las colisio
     je      checkAlienWallColision  ; En caso de que se cumpla, salta a la funcion de colision de paredes
     cmp     al, [bossc]             ; Compara el pixel leido con el color del jefe
     je      resetGame               ; En caso de que se cumpla, reinica el juego
+    cmp     al, [bombsc]            ; Compara el pixel leido con el color de las bombas
+    je      resetGame               ; En caso de que se cumpla, reinica el juego
 
     pop     ax                      ; Restaura ax del stack
     ret                             ; Retornar
@@ -1202,4 +1415,4 @@ checkAlienWallColisionAux4:
 
     jmp     checkAlienWallColisionAux ; Salta a la primer funcion
 
-times   (512*7)-($-$$) db 0         ; Tamaño del codigo
+times   (512*8)-($-$$) db 0         ; Tamaño del codigo
