@@ -1,5 +1,5 @@
 org 0x7C00
-%define SECTOR_AMOUNT 0x7  ;Precompiler defined value for easy changing
+%define SECTOR_AMOUNT 0x9  ;Precompiler defined value for easy changing
 jmp short start
 nop
 
