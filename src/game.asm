@@ -1574,4 +1574,4 @@ checkAlienWallColisionAux4:
 
     jmp     checkAlienWallColisionAux ; Salta a la primer funcion
 
-times   (512*9)-($-$$) db 0         ; Tamaño del codigo
+times   (512*10)-($-$$) db 0         ; Tamaño del codigo
