@@ -18,13 +18,13 @@ hardware:
 	nasm -fbin src/game.asm -o src/game.bin
 	cat src/boot.bin src/game.bin > out/program.bin
 	sudo umount /dev/sdb
-	sudo dd if=out/program.bin of=/dev/sdb bs=4096 count=1
+	sudo dd if=out/program.bin of=/dev/sdb bs=4608 count=1
 
 hardwareU:
 	nasm -fbin src/boot.asm -o src/boot.bin
 	nasm -fbin src/game.asm -o src/game.bin
 	cat src/boot.bin src/game.bin > out/program.bin
-	sudo dd if=out/program.bin of=/dev/sdb bs=4096 count=1
+	sudo dd if=out/program.bin of=/dev/sdb bs=4608 count=1
 
 clean:
 	rm src/*.bin
