@@ -89,6 +89,7 @@ wallsy times 71 dw 00h              ; Posicion y de las paredes
 wallsb times 71 dw 00h              ; Paredes en pantalla (0 no, 1 si)
 wallsa dw 00h                       ; Cantidad de paredes
 
+textColor     dw 09h
 bombsc dw 07h                       ; Color de las bombas
 bombss dw 05h                       ; Altura y ancho de las bombas
 bombsi dw 00h                       ; Indice para contar las bombas
@@ -104,6 +105,33 @@ texti dw 00h
 textx dw 00h
 texty dw 94h
 testText dw 'Esto es una prueba', 0h
+
+textControls0 dw '============CONTROLES============', 0h
+textControls1 dw 'Mover Alien...Flechas del teclado', 0h
+textControls2 dw 'Disparar......Tecla "SPACE"', 0h
+textControls3 dw 'Pausa.........Tecla "L"', 0h
+textControls4 dw 'Reiniciar.....Tecla "R"', 0h
+textControls5 dw '=================================', 0h
+
+textLevel1 dw 'Nivel: PRINCIPIANTE', 0h
+textLevel2 dw 'Nivel: AVANZADO', 0h
+
+textMenu0 dw '====================================', 0h
+textMenu1 dw '          FINDING TREASURE          ', 0h
+textMenu2 dw '              PARTE I               ', 0h
+textMenu3 dw '====================================', 0h
+textMenu4 dw '     Presione SPACE para iniciar    ', 0h
+
+
+textEnd0 dw '====================================', 0h
+textEnd1 dw '          FELICITACIONES            ', 0h
+textEnd2 dw '      HAS COMPLETADO EL JUEGO       ', 0h
+textEnd3 dw '====================================', 0h
+textEnd4 dw '   Presione SPACE para continuar    ', 0h
+
+
+
+
 
 ; Seccion de logica del juego
 
@@ -122,7 +150,8 @@ menuLoop:                           ; Ciclo principal del menu
   
     call    checkPlayerMenuAction   ; Llama la funcion encargada de verificar teclas en el menu principal
 
-    ;INSERTE AQUI LLAMADA DE ESCRITURA DEL MENU PRINCIPAL  
+    ;INSERTE AQUI LLAMADA DE ESCRITURA DEL MENU PRINCIPAL
+    call    drawTextMenu
 
     jmp     menuLoop                ; Salta al incio de la funcion
 
@@ -161,7 +190,9 @@ gameLoop:                           ; Ciclo principal del juego
     call    drawBoss                ; Llama a la funcion para dibujar al jefe
     call    drawBombs
 
-    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    call    drawTextControls                     ; Llama a la funcion encargada de escribir texto
+
 
     jmp     gameLoop                ; Salta al incio de la funcion
 
@@ -180,6 +211,7 @@ endLoop:                            ; Ciclo principal del fin del juego
     call    checkPlayerEndAction   ; Llama la funcion encargada de verificar teclas en el menu principal
 
     ;INSERTE AQUI LLAMADA DE ESCRITURA DEL FIN DEL JUEGO 
+    call    drawTextEnd
 
     jmp     endLoop                 ; Salta al incio de la funcion
 
@@ -700,6 +732,141 @@ exitWalls:
 
     ret                             ; Retornar
 
+
+drawTextEnd:
+    mov     bx, [textColor]
+    inc     bx
+    mov     [textColor],bx
+
+    mov     bx, textEnd0
+    mov     dh, 07h
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textEnd1
+    inc     dh
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textEnd2
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textEnd3
+    inc     dh
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textEnd4
+    inc     dh
+    inc     dh
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    ret
+
+drawTextMenu:
+    mov     bx, [textColor]
+    inc     bx
+    mov     [textColor],bx
+
+    mov     bx, textMenu0
+    mov     dh, 07h
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textMenu1
+    inc     dh
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textMenu2
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textMenu3
+    inc     dh
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textMenu4
+    inc     dh
+    inc     dh
+    inc     dh
+    mov     dl, 02h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    ret
+
+drawTextControls:
+    mov     bx, 0fh
+    mov     [textColor],bx
+
+    mov     bx, textControls0
+    mov     dh, 93h
+    mov     dl, 03h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textControls1
+    inc     dh
+    mov     dl, 03h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textControls2
+    inc     dh
+    mov     dl, 03h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textControls3
+    inc     dh
+    mov     dl, 03h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textControls4
+    inc     dh
+    mov     dl, 03h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+
+    mov     bx, textControls5
+    inc     dh
+    mov     dl, 03h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     ax, [level]
+    cmp     ax, 01h
+    je      drawTextLevel1
+    jmp     drawTextLevel2
+
+
+drawTextLevel1:
+    mov     bx, textLevel1
+    mov     dh, 03h
+    mov     dl, 14h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    ret
+
+drawTextLevel2:
+    mov     bx, textLevel2
+    mov     dh, 03h
+    mov     dl, 14h
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    ret
+
+
+;------------------------------------------
+; void drawText(String text)
+; bx text
+; cx [y,x]
 drawBombs:                          ; Funcion encargada de dibujar las bombas
     mov     cx, [bombsi]            ; Mueve el contador de las bombas a cx
     cmp     cx, [bombsa]            ; Compara el contador con la cantidad de bombas
@@ -767,41 +934,33 @@ exitBombs:
     ret                             ; Retornar
 
 drawText:
-    mov     bx, testText
-    mov     cx, [texti]
-    add     bx, cx
-    mov     al, [bx]
-    cmp     al, 0h
-    je      exitDrawText
-    inc     cx
-    mov     [texti], cx
-    jmp     drawTextAux
+    cmp byte [bx],0
+    jz finishDraw
+    jmp drawChar
 
-drawTextAux:
-    push    ax
-
+drawChar:
+    push bx
     mov     ah, 02h
-    mov     dh, [texty]
-    mov     dl, [textx]
+    ;mov     dh, [texty]
+    ;mov     dl, [textx]
     mov     bh, 00h
     int     10h
+    pop bx
 
-    pop     ax
+    push bx
+    mov     al, [bx]
     mov     ah, 0ah
     mov     bh, 00h
-    mov     bl, 0fh
+    mov     bl, [textColor]
     mov     cx, 01h
     int     10h
+    pop bx
 
-    mov     ax, 01h
-    add     [textx], ax
+    inc bx
+    inc dl
+    jmp drawText
 
-    jmp     drawText
-
-exitDrawText:
-    mov     ax, 00h
-    mov     [texti], ax
-    mov     [textx], ax
+finishDraw:
     ret
 
 ; Seccion de lectura del teclado
@@ -1415,4 +1574,4 @@ checkAlienWallColisionAux4:
 
     jmp     checkAlienWallColisionAux ; Salta a la primer funcion
 
-times   (512*8)-($-$$) db 0         ; Tamaño del codigo
+times   (512*9)-($-$$) db 0         ; Tamaño del codigo
