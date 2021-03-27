@@ -150,8 +150,7 @@ menuLoop:                           ; Ciclo principal del menu
   
     call    checkPlayerMenuAction   ; Llama la funcion encargada de verificar teclas en el menu principal
 
-    ;INSERTE AQUI LLAMADA DE ESCRITURA DEL MENU PRINCIPAL
-    call    drawTextMenu
+    call    drawTextMenu            ; Llama a la funcion encargada de escribir texto del menu
 
     jmp     menuLoop                ; Salta al incio de la funcion
 
@@ -188,11 +187,9 @@ gameLoop:                           ; Ciclo principal del juego
     call    drawFlowers             ; Llama a la funcion para dibujar las flores
     call    drawWalls               ; Llama a la funcion para dibujar las paredes
     call    drawBoss                ; Llama a la funcion para dibujar al jefe
-    call    drawBombs
+    call    drawBombs               ; Llama a la funcion para dibujar bombas
 
-
-    call    drawTextControls                     ; Llama a la funcion encargada de escribir texto
-
+    call    drawTextControls        ; Llama a la funcion encargada de escribir texto del juego
 
     jmp     gameLoop                ; Salta al incio de la funcion
 
@@ -208,10 +205,9 @@ endLoop:                            ; Ciclo principal del fin del juego
     je      endLoop                 ; Si son iguales vuelve a calcular el ciclo
     mov     [time], dl              ; Sino, almacena el nuevo tiempo
   
-    call    checkPlayerEndAction   ; Llama la funcion encargada de verificar teclas en el menu principal
+    call    checkPlayerEndAction    ; Llama la funcion encargada de verificar teclas en el menu principal
 
-    ;INSERTE AQUI LLAMADA DE ESCRITURA DEL FIN DEL JUEGO 
-    call    drawTextEnd
+    call    drawTextEnd             ; Llama a la funcion encargada de escribir texto del fin del juego
 
     jmp     endLoop                 ; Salta al incio de la funcion
 
@@ -733,140 +729,135 @@ exitWalls:
     ret                             ; Retornar
 
 
-drawTextEnd:
-    mov     bx, [textColor]
-    inc     bx
-    mov     [textColor],bx
+drawTextEnd:                        ; Funcion encargada de escribir los textos del fin del juego
+    mov     bx, [textColor]         ; Mueve a bx el color del texto
+    inc     bx                      ; Incrementa bx
+    mov     [textColor], bx         ; Almacena el nuevo bx al color del texto
 
-    mov     bx, textEnd0
-    mov     dh, 07h
-    mov     dl, 02h
+    mov     bx, textEnd0            ; Mueve a bx el puntero del primer texto
+    mov     dh, 07h                 ; Mueve a dh un 7
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textEnd1
-    inc     dh
-    inc     dh
-    mov     dl, 02h
+    mov     bx, textEnd1            ; Mueve a bx el puntero del segundo texto
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textEnd2
-    inc     dh
-    mov     dl, 02h
+    mov     bx, textEnd2            ; Mueve a bx el puntero del tercer texto
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textEnd3
-    inc     dh
-    inc     dh
-    mov     dl, 02h
+    mov     bx, textEnd3            ; Mueve a bx el puntero del cuarto texto
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dh un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textEnd4
-    inc     dh
-    inc     dh
-    inc     dh
-    mov     dl, 02h
+    mov     bx, textEnd4            ; Mueve a bx el puntero del quinto texto
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    ret
+    ret                             ; Retornar
 
-drawTextMenu:
-    mov     bx, [textColor]
-    inc     bx
-    mov     [textColor],bx
+drawTextMenu:                       ; Funcion encargada de escribir los textos del menu
+    mov     bx, [textColor]         ; Mueve a bx el color del texto
+    inc     bx                      ; Incrementa bx
+    mov     [textColor], bx         ; Almacena el nuevo bx al color del texto
 
-    mov     bx, textMenu0
-    mov     dh, 07h
-    mov     dl, 02h
+    mov     bx, textMenu0           ; Mueve a bx el puntero del primer texto
+    mov     dh, 07h                 ; Mueve a dh un 7
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textMenu1
-    inc     dh
-    inc     dh
-    mov     dl, 02h
+    mov     bx, textMenu1           ; Mueve a bx el puntero del segundo texto
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textMenu2
-    inc     dh
-    mov     dl, 02h
+    mov     bx, textMenu2           ; Mueve a bx el puntero del tercer texto
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textMenu3
-    inc     dh
-    inc     dh
-    mov     dl, 02h
+    mov     bx, textMenu3           ; Mueve a bx el puntero del cuarto texto
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    mov     bx, textMenu4
-    inc     dh
-    inc     dh
-    inc     dh
-    mov     dl, 02h
-    call    drawText                ; Llama a la funcion encargada de escribir texto
-
-    ret
-
-drawTextControls:
-    mov     bx, 0fh
-    mov     [textColor],bx
-
-    mov     bx, textControls0
-    mov     dh, 93h
-    mov     dl, 03h
-    call    drawText                ; Llama a la funcion encargada de escribir texto
-
-    mov     bx, textControls1
-    inc     dh
-    mov     dl, 03h
-    call    drawText                ; Llama a la funcion encargada de escribir texto
-
-    mov     bx, textControls2
-    inc     dh
-    mov     dl, 03h
-    call    drawText                ; Llama a la funcion encargada de escribir texto
-
-    mov     bx, textControls3
-    inc     dh
-    mov     dl, 03h
-    call    drawText                ; Llama a la funcion encargada de escribir texto
-
-    mov     bx, textControls4
-    inc     dh
-    mov     dl, 03h
-    call    drawText                ; Llama a la funcion encargada de escribir texto
-
-
-    mov     bx, textControls5
-    inc     dh
-    mov     dl, 03h
-    call    drawText                ; Llama a la funcion encargada de escribir texto
-
-    mov     ax, [level]
-    cmp     ax, 01h
-    je      drawTextLevel1
-    jmp     drawTextLevel2
-
-
-drawTextLevel1:
-    mov     bx, textLevel1
-    mov     dh, 03h
-    mov     dl, 14h
+    mov     bx, textMenu4           ; Mueve a bx el puntero del quinta texto
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    inc     dh                      ; Incrementa dh
+    mov     dl, 02h                 ; Mueve a dl un 2
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
     ret
 
-drawTextLevel2:
-    mov     bx, textLevel2
-    mov     dh, 03h
-    mov     dl, 14h
+drawTextControls:                   ; Funcion encargada de escribir los textos del juego
+    mov     bx, 0fh                 ; Mueve a bx un 15
+    mov     [textColor], bx         ; Almacena bx al color del texto
+
+    mov     bx, textControls0       ; Mueve a bx el puntero del primer texto
+    mov     dh, 93h                 ; Mueve a dh un 147
+    mov     dl, 03h                 ; Mueve a dl un 3
     call    drawText                ; Llama a la funcion encargada de escribir texto
 
-    ret
+    mov     bx, textControls1       ; Mueve a bx el puntero del segundo texto
+    inc     dh                      ; Incrementa dh
+    mov     dl, 03h                 ; Mueve a dl un 3
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textControls2       ; Mueve a bx el puntero del tercer texto
+    inc     dh                      ; Incrementa dh
+    mov     dl, 03h                 ; Mueve a dl un 3
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textControls3       ; Mueve a bx el puntero del cuarto texto
+    inc     dh                      ; Incrementa dh
+    mov     dl, 03h                 ; Mueve a dl un 3
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     bx, textControls4       ; Mueve a bx el puntero del quinto texto
+    inc     dh                      ; Incrementa dh
+    mov     dl, 03h                 ; Mueve a dl un 3
+    call    drawText                ; Llama a la funcion encargada de escribir texto
 
 
-;------------------------------------------
-; void drawText(String text)
-; bx text
-; cx [y,x]
+    mov     bx, textControls5       ; Mueve a bx el puntero del sexto texto
+    inc     dh                      ; Incrementa dh
+    mov     dl, 03h                 ; Mueve a dl un 3
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    mov     ax, [level]             ; Mueve a ax el nivel actual
+    cmp     ax, 01h                 ; Compara ax con 1
+    je      drawTextLevel1          ; Salta a la funcion para dibujar el texto del primer nivel
+    jmp     drawTextLevel2          ; Salta a la funcion para dibujar el texto del segundo nivel
+
+
+drawTextLevel1:                     ; Funcion encargada de escribir el texto del primer nivel
+    mov     bx, textLevel1          ; Mueve a bx el puntero del primer texto
+    mov     dh, 03h                 ; Mueve a dh un 3
+    mov     dl, 14h                 ; Mueve a dl un 20
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    ret                             ; Retornar
+
+drawTextLevel2:                     ; Funcion encargada de escribir el texto del segundo nivel
+    mov     bx, textLevel2          ; Mueve a bx el puntero del segundo texto
+    mov     dh, 03h                 ; Mueve a dh un 3
+    mov     dl, 14h                 ; Mueve a dl un 20
+    call    drawText                ; Llama a la funcion encargada de escribir texto
+
+    ret                             ; Retornar
+
 drawBombs:                          ; Funcion encargada de dibujar las bombas
     mov     cx, [bombsi]            ; Mueve el contador de las bombas a cx
     cmp     cx, [bombsa]            ; Compara el contador con la cantidad de bombas
@@ -933,35 +924,33 @@ exitBombs:
 
     ret                             ; Retornar
 
-drawText:
-    cmp byte [bx],0
-    jz finishDraw
-    jmp drawChar
+drawText:                           ; Funcion encargada de dibujar texto
+    cmp     byte [bx],0             ; Compara el byte que contiene bx con 0
+    jz      finishDraw              ; Si es igual a cero, salta a la funcion de salida
+    jmp     drawChar                ; Sino salta a dibujar un caracter
 
-drawChar:
-    push bx
-    mov     ah, 02h
-    ;mov     dh, [texty]
-    ;mov     dl, [textx]
-    mov     bh, 00h
-    int     10h
-    pop bx
+drawChar:                           ; Funcion encargada de dibujar un caracter
+    push    bx                      ; Hace un push de bx
+    mov     ah, 02h                 ; Mueve a ah un 2
+    mov     bh, 00h                 ; Mueve a bh un 0
+    int     10h                     ; Ejecutar interrupcion
+    pop     bx                      ; Hace pop a bx
 
-    push bx
-    mov     al, [bx]
-    mov     ah, 0ah
-    mov     bh, 00h
-    mov     bl, [textColor]
-    mov     cx, 01h
-    int     10h
-    pop bx
+    push    bx                      ; Hace push a bx
+    mov     al, [bx]                ; Mueve el cnotenido de bx a al
+    mov     ah, 0ah                 ; Mueve a ah un 10
+    mov     bh, 00h                 ; Mueve a bh un 0
+    mov     bl, [textColor]         ; Mueve el color de texto a bl
+    mov     cx, 01h                 ; Mueve a cx un 1
+    int     10h                     ; Ejecutar interrupcion
+    pop     bx                      ; Hace pop a bx
 
-    inc bx
-    inc dl
-    jmp drawText
+    inc     bx                      ; Incrementa bx
+    inc     dl                      ; Incrementa dl
+    jmp     drawText                ; Salta a la funcion de dibujar texto
 
-finishDraw:
-    ret
+finishDraw:                         ; Funcion de salida de texto
+    ret                             ; Retornar
 
 ; Seccion de lectura del teclado
 
